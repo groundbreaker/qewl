@@ -60,7 +60,7 @@ Currently this library makes a few assumptions about the setup of your GraphQL A
   - `delete` - `DeleteResourceNameInput`
   - `update` - `UpdateResourceNameInput`
 - Query naming pattern 
-  - `collection` - `listResourceName`
+  - `collection` - `listResourceNames`
   - `singleton` - `getResourceName`
 - Query Filter Input Types naming pattern
   - `ResourceNameFilterInput`
@@ -97,5 +97,41 @@ service.schema()
 }
 ```
 
-Each key value pair returned contains a filtered array of objects that match respective key's type. These objects are in the format that the Introspection Schema uses to describe the GraphQL API.
+Each key value pair returned contains a filtered array of objects that match respective key's type. These objects are in the format that the Graphql AST uses to describe your API.
 
+### Qewl#detail(queryName, params, requestedFields = 'id')
+
+This uses the client provided to the current instance of Qewl and generates a [gql](https://github.com/apollographql/graphql-tag) query based on the required `queryName` and `params` arguments and then executes the generated query. The required `params` argument expects an `id` key/value pair that has an ID scalar type value. The `requestedFields` argument is optional and is a [gql](https://github.com/apollographql/graphql-tag) string describing the requested response fields based on the type in your API, this defaults to requesting the `id` for respective type by default.
+
+#### Example
+
+```js
+const Qewl = require('@groundbreaker/qewl');
+service = new Qewl(client, resources);
+
+service.detail(
+  'listFoos',
+  {
+    id: '72fe3969-cf72-4aa6-bf61-c3c647fa543c'
+  },
+  'id name status'
+)
+.then((data) => {
+  // do something with data
+  console.log(data);
+})
+.catch((error) => {
+  console.error(error);
+});
+```
+
+#### Return Value
+
+```js
+{
+  __typename: 'Foo',
+  id: '72fe3969-cf72-4aa6-bf61-c3c647fa543c',
+  name: 'Foo',
+  status: 'Active'
+}
+```

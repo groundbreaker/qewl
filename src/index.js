@@ -20,7 +20,7 @@ export default class Qewl {
     this.resources = resources;
   }
 
-  async detail(queryName, requestedFields = "id", params = null) {
+  async detail(queryName, params, requestedFields = "id") {
     try {
       const query = gql`query($id: ID!) {
           ${queryName}(
