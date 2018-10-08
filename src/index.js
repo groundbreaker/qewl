@@ -75,7 +75,7 @@ export default class Qewl {
 
   async mutate(queryName, inputName, payload, requestedFields = "id") {
     try {
-      const mutation = gql`mutation($input: ${inputName}!){
+      const mutation = gql`mutation($input: ${inputName}){
         ${queryName}(input: $input) {
           ${requestedFields}
         }
@@ -104,8 +104,7 @@ export default class Qewl {
 
       const schema = await this.client
         .query({
-          query: query,
-          fetchPolicy: "no-cache"
+          query: query
         })
         .then(response => {
           return response.data.__schema;
@@ -156,7 +155,7 @@ export const decorateCreate = (
             apiSchema: { inputTypes }
           } = this.props;
           const mutation = `create${capitalize(resource)}`;
-          const inputType = `Create${capitalize(resource)}Input`;
+          const inputType = `Create${capitalize(resource)}Input!`;
           const schema = transformMutationToJSONSchema(
             _.findWhere(inputTypes, {
               name: inputType
@@ -263,7 +262,7 @@ export const decorateUpdate = (
             { id: params.id }
           );
           const mutation = `update${capitalize(resource)}`;
-          const inputType = `Update${capitalize(resource)}Input`;
+          const inputType = `Update${capitalize(resource)}Input!`;
           const schema = transformMutationToJSONSchema(
             _.findWhere(inputTypes, {
               name: inputType
