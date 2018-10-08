@@ -211,8 +211,8 @@ service.mutate(
 ```js
 {
   __typename: 'Foo',
-  id: '72fe3969-cf72-4aa6-bf61-c3c647fa543c',
-  name: 'Foo',
+  id: '72fe4097-cf72-4cc6-hf61-c3c759fa543c',
+  name: 'New Foo',
   status: 'Active'
 }
 ```
