@@ -67,7 +67,7 @@ Currently this library makes a few assumptions about the setup of your GraphQL A
 
 ### Qewl#schema()
 
-This uses the client provided to the current instance of Qewl and fetches the introspection query 
+This uses the client provided to the current instance of Qewl and performs and parses the introspection query.
 
 #### Example
 
