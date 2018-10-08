@@ -73,10 +73,10 @@ export default class Qewl {
     }
   }
 
-  async mutate(queryName, inputName, payload, requestedFields = "id") {
+  async mutate(mutationName, inputType, payload, requestedFields = "id") {
     try {
-      const mutation = gql`mutation($input: ${inputName}){
-        ${queryName}(input: $input) {
+      const mutation = gql`mutation($input: ${inputType}){
+        ${mutationName}(input: $input) {
           ${requestedFields}
         }
       }`;
