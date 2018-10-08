@@ -135,3 +135,45 @@ service.detail(
   status: 'Active'
 }
 ```
+
+### Qewl#list(queryName, requestedFields = 'id', params = null)
+
+This uses the client provided to the current instance of Qewl and generates a [gql](https://github.com/apollographql/graphql-tag) query based on the required `queryName` argument and then executes the generated query. The optional `params` argument is an object that is directly passed to the Apollo client's variables paramater on the query method. The `requestedFields` argument is optional and is a [gql](https://github.com/apollographql/graphql-tag) style string describing the requested response fields based on the type in your API, this defaults to requesting the `id` for respective type by default.
+
+#### Example
+
+```js
+const Qewl = require('@groundbreaker/qewl');
+service = new Qewl(client, resources);
+
+service.list(
+  'listFoos',
+  'id name status'
+)
+.then((data) => {
+  // do something with data
+  console.log(data);
+})
+.catch((error) => {
+  console.error(error);
+});
+```
+
+#### Return Value
+
+```js
+[
+  {
+    __typename: 'Foo',
+    id: '72fe3969-cf72-4aa6-bf61-c3c647fa543c',
+    name: 'Foo',
+    status: 'Active'
+  },
+  {
+    __typename: 'Foo',
+    id: '72fe3679-cg09-4bb6-bf61-c3c647fa543c',
+    name: 'Bar',
+    status: 'Inactive'
+  }
+]
+```
