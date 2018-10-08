@@ -101,7 +101,7 @@ Each key value pair returned contains a filtered array of objects that match res
 
 ### Qewl#detail(queryName, params, requestedFields = 'id')
 
-This uses the client provided to the current instance of Qewl and generates a [gql](https://github.com/apollographql/graphql-tag) query based on the required `queryName` and `params` arguments and then executes the generated query. The required `params` argument expects an `id` key/value pair that has an ID scalar type value. The `requestedFields` argument is optional and is a [gql](https://github.com/apollographql/graphql-tag) string describing the requested response fields based on the type in your API, this defaults to requesting the `id` for respective type by default.
+This uses the client provided to the current instance of Qewl and generates a [gql](https://github.com/apollographql/graphql-tag) query based on the required `queryName` and `params` arguments and then executes the generated query. The required `params` argument expects an `id` key/value pair that has an ID scalar type value. The `requestedFields` argument is optional and is a [gql](https://github.com/apollographql/graphql-tag) style string describing the requested response fields based on the type in your API, this defaults to requesting the `id` for respective type by default.
 
 #### Example
 
@@ -110,7 +110,7 @@ const Qewl = require('@groundbreaker/qewl');
 service = new Qewl(client, resources);
 
 service.detail(
-  'listFoos',
+  'getFoo',
   {
     id: '72fe3969-cf72-4aa6-bf61-c3c647fa543c'
   },
