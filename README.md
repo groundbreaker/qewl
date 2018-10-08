@@ -180,7 +180,7 @@ service.list(
 
 ### Qewl#mutate(mutationName, inputType, payload, requestedFields = 'id')
 
-This uses the client provided to the current instance of Qewl and generates a [gql](https://github.com/apollographql/graphql-tag) mutation based on the required `mutationName`, `inputType` and `payload` arguments and then executes the generated query. The `payload` argument will be an object that abides by the schema set forth by the given `inputType`.  The `requestedFields` argument is optional and is a [gql](https://github.com/apollographql/graphql-tag) style string describing the requested response fields based on the type in your API, this defaults to requesting the `id` for respective type by default.
+This uses the client provided to the current instance of Qewl and generates a [gql](https://github.com/apollographql/graphql-tag) mutation based on the required `mutationName`, `inputType` and `payload` arguments and then executes the generated query. The `payload` argument will be an object that abides by the type definition for the given `inputType`.  The `requestedFields` argument is optional and is a [gql](https://github.com/apollographql/graphql-tag) style string describing the requested response fields based on the type in your API, this defaults to requesting the `id` for respective type by default.
 
 #### Example
 
