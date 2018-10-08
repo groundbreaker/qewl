@@ -97,5 +97,5 @@ service.schema()
 }
 ```
 
-Each key value pair returned contains a filtered array of the respective key's objects in the GraqhQL SDL(Schema Definition Language).
+Each key value pair returned contains a filtered array of objects that match respective key's type. These objects are in the format that the Introspection Schema uses to describe the GraphQL API.
 
