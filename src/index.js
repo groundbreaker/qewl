@@ -96,7 +96,13 @@ export default class Qewl {
 
   async schema() {
     try {
-      let api = { mutations: {}, queries: {}, inputTypes: {}, filterTypes: {} };
+      let api = {
+        enums: {},
+        mutations: {},
+        queries: {},
+        inputTypes: {},
+        filterTypes: {}
+      };
 
       const query = parse(introspectionQuery, {
         noLocation: true
@@ -104,7 +110,8 @@ export default class Qewl {
 
       const schema = await this.client
         .query({
-          query: query
+          query: query,
+          fetchPolicy: "no-cache"
         })
         .then(response => {
           return response.data.__schema;
