@@ -87,7 +87,6 @@ export default class Qewl {
           variables: { input: payload }
         })
         .then(response => response.data[queryName]);
-
       return response;
     } catch (err) {
       console.log(err);
@@ -169,7 +168,7 @@ export const decorateCreate = (
             }),
             apiSchema
           );
-          this.setState({
+          return this.setState({
             inputType,
             mutation,
             schema
@@ -182,7 +181,7 @@ export const decorateCreate = (
     withHandlers({
       onSubmit: props => data => {
         const { api, inputType, mutation } = props;
-        api.mutate(mutation, inputType, data.formData);
+        return api.mutate(mutation, inputType, data.formData);
       }
     }),
     branch(({ loading }) => loading, renderComponent(<LoadingComponent />))
@@ -234,7 +233,7 @@ export const decorateList = (
             `list${capitalize(pluralize(resource))}`,
             resources[resource].list.fields
           );
-          this.setState({ data });
+          return this.setState({ data });
         } catch (err) {
           console.log(err);
         }
@@ -276,7 +275,7 @@ export const decorateUpdate = (
             }),
             apiSchema
           );
-          this.setState({
+          return this.setState({
             inputType,
             mutation,
             schema,
@@ -295,7 +294,7 @@ export const decorateUpdate = (
           mutation,
           match: { params }
         } = props;
-        api.mutate(mutation, inputType, {
+        return api.mutate(mutation, inputType, {
           ...{ id: params.id },
           ...data.formData
         });
