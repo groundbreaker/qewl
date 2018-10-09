@@ -263,8 +263,14 @@ All of the CRUD decorators provided by the Qewl library require a React componen
 
 This method is used to decorate a React component that will be creating a resource. The decorated component will now have it's respective `mutation`, `inputType`, a `schema` prop that represents a JSON schema object generated based on the mutation and inputType arguments, and an onSubmit function that **requires** a payload to be passed through to the Qewl#mutate method available in it's props.
 
-### decorateDetail (loadingComponent, resourceName)
+### decorateDetail (loadingComponent, resourceName, id)
+
+This decorator is used to decorate a React component that will be fetching a singleton resource. This decorator **requires** that the `resources` object used to initialize the Qewl service be available in the props of the component being decorated. It also **requires** that the `id` for the resource being updated be passed as an argument. The decorated component will now have a `data` prop that represents the singleton resource with the key/value pairs outlined in the `resources['detail']['fields']` list.
+
 ### decorateList(loadingComponent, resourceName)
+
+This decorator is used to decorate a React component that will be fetching a resource collection/list. This decorator **requires** that the `resources` object used to initialize the Qewl service be available in the props of the component being decorated. The decorated component will now have a `data` prop that contains an array of the given resource objects with the key/value pairs outlined in the `resources['list']['fields']` list.
+
 ### decorateUpdate(loadingComponent, resourceName, id)
 
 This decorator is used to decorate a React component that will be updating a resource. This decorator **requires** that the `resources` object used to initialize the Qewl service be available in the props of the component being decorated. It also **requires** that the `id` for the resource being updated be passed as an argument. The decorated component will now have it's respective `mutation`, `inputType`, a `schema` prop that represents a JSON schema object generated based on the mutation and inputType arguments, a formData object that represents the response from Qewl#detail for the given resource, and an `onSubmit` handler that **requires** a data payload, to be used for the mutation, available in it's props.

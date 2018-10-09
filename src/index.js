@@ -185,7 +185,7 @@ export const decorateCreate = (LoadingComponent, resource) => {
   );
 };
 
-export const decorateDetail = (LoadingComponent, resource) => {
+export const decorateDetail = (LoadingComponent, resource, id) => {
   return compose(
     lifecycle({
       state: {
@@ -193,16 +193,12 @@ export const decorateDetail = (LoadingComponent, resource) => {
       },
       async componentDidMount() {
         try {
-          const {
-            api,
-            match: { params },
-            resources
-          } = this.props;
+          const { api, resources } = this.props;
 
           const data = await api.detail(
             `get${capitalize(resource)}`,
             resources[resource].detail.fields,
-            { id: params.id }
+            { id: id }
           );
           return this.setState({ data });
         } catch (err) {
