@@ -144,10 +144,7 @@ export default class Qewl {
   }
 }
 
-export const decorateCreate = (
-  LoadingComponent,
-  resource = parseResource(window.location.pathname)
-) => {
+export const decorateCreate = (LoadingComponent, resource) => {
   return compose(
     lifecycle({
       state: {
@@ -181,17 +178,14 @@ export const decorateCreate = (
     withHandlers({
       onSubmit: props => data => {
         const { api, inputType, mutation } = props;
-        return api.mutate(mutation, inputType, data.formData);
+        return api.mutate(mutation, inputType, data);
       }
     }),
     branch(({ loading }) => loading, renderComponent(<LoadingComponent />))
   );
 };
 
-export const decorateDetail = (
-  LoadingComponent,
-  resource = parseResource(window.location.pathname)
-) => {
+export const decorateDetail = (LoadingComponent, resource) => {
   return compose(
     lifecycle({
       state: {
@@ -220,10 +214,7 @@ export const decorateDetail = (
   );
 };
 
-export const decorateList = (
-  LoadingComponent,
-  resource = parseResource(window.location.pathname)
-) => {
+export const decorateList = (LoadingComponent, resource) => {
   return compose(
     lifecycle({
       state: { data: [] },
@@ -244,10 +235,7 @@ export const decorateList = (
   );
 };
 
-export const decorateUpdate = (
-  LoadingComponent,
-  resource = parseResource(window.location.pathname)
-) => {
+export const decorateUpdate = (LoadingComponent, resource) => {
   return compose(
     lifecycle({
       state: {
@@ -297,7 +285,7 @@ export const decorateUpdate = (
         } = props;
         return api.mutate(mutation, inputType, {
           ...{ id: params.id },
-          ...data.formData
+          ...data
         });
       }
     }),
@@ -306,12 +294,6 @@ export const decorateUpdate = (
 };
 
 const filterRegex = new RegExp(["Filter"].join("|"));
-
-const parseResource = path => {
-  return pluralize.singular(
-    _.filter(path.split("/"), segment => segment !== "")[0]
-  );
-};
 
 const processProperties = (apiSchema, fields) => {
   let properties = {};
