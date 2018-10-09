@@ -235,7 +235,7 @@ export const decorateList = (LoadingComponent, resource) => {
   );
 };
 
-export const decorateUpdate = (LoadingComponent, resource) => {
+export const decorateUpdate = (LoadingComponent, resource, id) => {
   return compose(
     lifecycle({
       state: {
@@ -248,13 +248,12 @@ export const decorateUpdate = (LoadingComponent, resource) => {
             api,
             apiSchema,
             apiSchema: { inputTypes },
-            match: { params },
             resources
           } = this.props;
           const formData = await api.detail(
             `get${capitalize(resource)}`,
             resources[resource].detail.fields,
-            { id: params.id }
+            { id: id }
           );
           const mutation = `update${capitalize(resource)}`;
           const inputType = `Update${capitalize(resource)}Input!`;
