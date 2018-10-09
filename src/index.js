@@ -204,6 +204,7 @@ export const decorateDetail = (
             match: { params },
             resources
           } = this.props;
+
           const data = await api.detail(
             `get${capitalize(resource)}`,
             resources[resource].detail.fields,

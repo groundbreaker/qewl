@@ -216,3 +216,48 @@ service.mutate(
   status: 'Active'
 }
 ```
+
+## Utils API
+
+This library comes with a set of [Recompose](https://github.com/acdlite/recompose) HOC's used to decorate React components with boilerplate functionality common to the types of patterns we've seen when consuming both REST and GraphQL API's i.e. loading states, error handlers, data fetching, etc.  
+
+Currently, the decorators rely on an instance of the Qewl service and the schema returned by Qewl#schema() to be available in the props as `api` and `apiSchema` of the React component you are decorating.
+
+We recommend doing this by initializing an instance of the Qewl service and passing it in as props via [React Router](https://reacttraining.com/react-router).
+
+#### Example
+
+```js
+import { Route, Switch } from "react-router-dom";
+const Qewl = require("@groundbreaker/qewl");
+
+initializeQewl = () => {
+  const api = new Qewl(this.props.client, resources);
+  api.schema().then(apiSchema =>
+    this.setState({
+      api,
+      apiSchema
+    })
+  );
+};
+
+render() {
+  const { api, apiSchema } = this.state;
+
+  return (
+    <Switch>
+      <Route 
+        to='/foo'
+        render={(props) =>
+          <Component {...props} api={api} apiSchema={apiSchema} />
+        }
+      />
+    </Switch>
+  )
+}
+```
+
+###decorateCreate(loadingComponent, resourceName)
+###decorateDetail (loadingComponent, resourceName)
+###decorateList(loadingComponent, resourceName)
+###decorateUpdate(loadingComponent, resourceName)
