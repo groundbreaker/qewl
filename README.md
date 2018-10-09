@@ -259,12 +259,12 @@ render() {
 
 All of the CRUD decorators provided by the Qewl library require a React component to be rendered during loading and a resource name that maps to one of the resources present in the resources object used to initialize the Qewl service.
 
-###decorateCreate(loadingComponent, resourceName)
+### decorateCreate(loadingComponent, resourceName)
 
 This method is used to decorate a React component that will be creating a resource. The decorated component will now have it's respective `mutation`, `inputType`, a `schema` prop that represents a JSON schema object generated based on the mutation and inputType arguments, and an onSubmit function that **requires** a payload to be passed through to the Qewl#mutate method available in it's props.
 
-###decorateDetail (loadingComponent, resourceName)
-###decorateList(loadingComponent, resourceName)
-###decorateUpdate(loadingComponent, resourceName, id)
+### decorateDetail (loadingComponent, resourceName)
+### decorateList(loadingComponent, resourceName)
+### decorateUpdate(loadingComponent, resourceName, id)
 
 This decorator is used to decorate a React component that will be updating a resource. This decorator **requires** that the `resources` object used to initialize the Qewl service be available in the props of the component being decorated. It also **requires** that the `id` for the resource being updated be passed as an argument. The decorated component will now have it's respective `mutation`, `inputType`, a `schema` prop that represents a JSON schema object generated based on the mutation and inputType arguments, a formData object that represents the response from Qewl#detail for the given resource, and an `onSubmit` handler that **requires** a data payload, to be used for the mutation, available in it's props.
