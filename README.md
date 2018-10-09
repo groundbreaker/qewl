@@ -97,7 +97,7 @@ service.schema()
 }
 ```
 
-Each key value pair returned contains a filtered array of objects that match respective key's type. These objects are in the format that the Graphql AST uses to describe your API.
+Each key value pair returned contains a filtered array of objects that match respective key's type. These objects are in the format that the GraphQL AST uses to describe your API.
 
 ### Qewl#detail(queryName, params, requestedFields = 'id')
 
