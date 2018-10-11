@@ -75,7 +75,7 @@ export default class Qewl {
 
   async mutate(mutationName, inputType, payload, requestedFields = "id") {
     try {
-      const mutation = gql`mutation($input: ${inputType}){
+      const mutation = gql`mutation($input: ${inputType}!){
         ${mutationName}(input: $input) {
           ${requestedFields}
         }
@@ -158,7 +158,7 @@ export const decorateCreate = (LoadingComponent, resource) => {
             apiSchema: { inputTypes }
           } = this.props;
           const mutation = `create${capitalize(resource)}`;
-          const inputType = `Create${capitalize(resource)}Input!`;
+          const inputType = `Create${capitalize(resource)}Input`;
           const schema = transformMutationToJSONSchema(
             _.findWhere(inputTypes, {
               name: inputType
