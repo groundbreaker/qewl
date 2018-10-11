@@ -1,6 +1,6 @@
 {
   "name": "@groundbreaker/qewl",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "React Apollo and AppSync middleware designed to eliminate graqhql boilerplate code.",
   "private": false,
   "license": "MIT",
@@ -14,7 +14,6 @@
   ],
   "scripts": {
     "build": "webpack-cli --mode=production",
-    "postinstall": "webpack-cli --mode=production",
     "test": "mocha *test.js --require @babel/register --require @babel/polyfill"
   },
   "dependencies": {
