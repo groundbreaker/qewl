@@ -19,6 +19,5 @@ module.exports = {
       }
     ]
   },
-  plugins: [new UglifyJsPlugin()],
-  externals: ["react"]
+  plugins: [new UglifyJsPlugin()]
 };
