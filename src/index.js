@@ -21,6 +21,7 @@ export default class Qewl {
   }
 
   async detail(queryName, params, requestedFields = "id") {
+    console.log(queryName, params, requestedFields);
     try {
       const query = gql`query($id: ID!) {
           ${queryName}(
@@ -86,7 +87,7 @@ export default class Qewl {
           mutation: mutation,
           variables: { input: payload }
         })
-        .then(response => response.data[queryName]);
+        .then(response => response.data[mutationName]);
       return response;
     } catch (err) {
       console.log(err);
@@ -186,6 +187,7 @@ export const decorateCreate = (LoadingComponent, resource) => {
 };
 
 export const decorateDetail = (LoadingComponent, resource, id) => {
+  console.log(LoadingComponent, resource, id);
   return compose(
     lifecycle({
       state: {
@@ -194,11 +196,10 @@ export const decorateDetail = (LoadingComponent, resource, id) => {
       async componentDidMount() {
         try {
           const { api, resources } = this.props;
-
           const data = await api.detail(
             `get${capitalize(resource)}`,
-            resources[resource].detail.fields,
-            { id: id }
+            { id: id },
+            resources[resource].detail.fields
           );
           return this.setState({ data });
         } catch (err) {
@@ -248,11 +249,11 @@ export const decorateUpdate = (LoadingComponent, resource, id) => {
           } = this.props;
           const formData = await api.detail(
             `get${capitalize(resource)}`,
-            resources[resource].detail.fields,
-            { id: id }
+            { id: id },
+            resources[resource].detail.fields
           );
           const mutation = `update${capitalize(resource)}`;
-          const inputType = `Update${capitalize(resource)}Input!`;
+          const inputType = `Update${capitalize(resource)}Input`;
           const schema = transformMutationToJSONSchema(
             _.findWhere(inputTypes, {
               name: inputType

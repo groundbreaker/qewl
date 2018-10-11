@@ -1,6 +1,6 @@
 {
   "name": "@groundbreaker/qewl",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "React Apollo and AppSync middleware designed to eliminate graqhql boilerplate code.",
   "license": "MIT",
   "author": "GroundBreaker Engineering Team <eng@groundbreaker.co>",
@@ -8,6 +8,10 @@
   "bugs": "https://github.com/groundbreaker/qewl/issues",
   "repository": "github:groundbreaker/qewl",
   "main": "index.js",
+  "engines": {
+    "node": "~10.12.0",
+    "npm": "~6.4.1"
+  },
   "files": [
     "index.js"
   ],
@@ -17,11 +21,11 @@
   },
   "dependencies": {
     "graphql": "^14.0.2",
-    "graphql-tag": "^2.9.2",
+    "graphql-tag": "^2.10.0",
     "pluralize": "^7.0.0",
     "recompose": "^0.30.0",
     "underscore": "^1.9.1",
-    "underscore.string": "^3.3.4"
+    "underscore.string": "^3.3.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.2",
@@ -43,9 +47,5 @@
     "uglifyjs-webpack-plugin": "^1.2.7",
     "webpack": "^4.16.5",
     "webpack-cli": "^3.1.0"
-  },
-  "peerDependencies": {
-    "graphql": "^14.0.2",
-    "react": "^16.4.2"
   }
 }

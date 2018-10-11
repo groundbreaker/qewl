@@ -8,6 +8,9 @@ module.exports = {
     filename: "index.js",
     libraryTarget: "commonjs2"
   },
+  resolve: {
+    modules: [path.join(__dirname, "src"), "node_modules"]
+  },
   module: {
     rules: [
       {
@@ -19,5 +22,6 @@ module.exports = {
       }
     ]
   },
-  plugins: [new UglifyJsPlugin()]
+  plugins: [new UglifyJsPlugin()],
+  externals: ["react"]
 };
