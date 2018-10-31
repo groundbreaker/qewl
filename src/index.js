@@ -1,12 +1,7 @@
 import React from "react";
 import { introspectionQuery, parse } from "graphql";
-import {
-  compose,
-  lifecycle,
-  branch,
-  renderComponent,
-  withHandlers
-} from "recompose";
+import { graphql } from "react-apollo";
+import { compose, branch, renderComponent, withProps } from "recompose";
 import capitalize from "underscore.string/capitalize";
 import humanize from "underscore.string/humanize";
 import pluralize from "pluralize";
@@ -18,80 +13,6 @@ export default class Qewl {
   constructor(client, resources) {
     this.client = client;
     this.resources = resources;
-  }
-
-  async detail(queryName, params, requestedFields = "id") {
-    console.log(queryName, params, requestedFields);
-    try {
-      const query = gql`query($id: ID!) {
-          ${queryName}(
-            id: $id
-          ) {
-            ${requestedFields}
-          }
-        }`;
-
-      let request = { query: query, fetchPolicy: "no-cache" };
-
-      if (params) {
-        request = { ...request, variables: { ...params } };
-      }
-
-      const response = await this.client
-        .query(request)
-        .then(response => response.data[queryName]);
-      return response;
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  async list(queryName, requestedFields = "id", params = null) {
-    try {
-      const query = gql`query($limit: Int, $nextToken: String) {
-          ${queryName}(
-            limit: $limit,
-            nextToken: $nextToken
-          ) {
-            items {
-              ${requestedFields}
-            }
-          }
-        }`;
-
-      let request = { query: query, fetchPolicy: "no-cache" };
-
-      if (params) {
-        request = { ...request, variables: { ...params } };
-      }
-
-      const response = await this.client
-        .query(request)
-        .then(response => response.data[queryName].items);
-      return response;
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  async mutate(mutationName, inputType, payload, requestedFields = "id") {
-    try {
-      const mutation = gql`mutation($input: ${inputType}!){
-        ${mutationName}(input: $input) {
-          ${requestedFields}
-        }
-      }`;
-
-      const response = await this.client
-        .mutate({
-          mutation: mutation,
-          variables: { input: payload }
-        })
-        .then(response => response.data[mutationName]);
-      return response;
-    } catch (err) {
-      console.log(err);
-    }
   }
 
   async schema() {
@@ -110,8 +31,7 @@ export default class Qewl {
 
       const schema = await this.client
         .query({
-          query: query,
-          fetchPolicy: "no-cache"
+          query: query
         })
         .then(response => {
           return response.data.__schema;
@@ -145,148 +65,193 @@ export default class Qewl {
   }
 }
 
-export const decorateCreate = (LoadingComponent, resource) => {
+export const decorateCreate = (
+  LoadingComponent,
+  ErrorComponent,
+  resourceName,
+  fields,
+  inputTypeName = null,
+  mutationName = null,
+  queryName = null
+) => {
+  const mutationVars = {
+    inputTypeName: inputTypeName || `Create${resourceName}Input`,
+    mutationName: mutationName || `create${resourceName}`,
+    queryName: queryName || `list${pluralize(resourceName)}`
+  };
+  const mutation = gql`mutation($input: ${mutationVars.inputTypeName}!){
+        ${mutationVars.mutationName}(input: $input) {
+          ${fields}
+        }
+      }`;
+
   return compose(
-    lifecycle({
-      state: {
-        schema: {},
-        mutation: null
+    graphql(mutation, {
+      options: {
+        refetchQueries: [
+          {
+            query: gqlFetchList(mutationVars.queryName, fields)
+          }
+        ]
       },
-      async componentDidMount() {
-        try {
-          const {
-            apiSchema,
-            apiSchema: { inputTypes }
-          } = this.props;
-          const mutation = `create${capitalize(resource)}`;
-          const inputType = `Create${capitalize(resource)}Input`;
-          const schema = transformMutationToJSONSchema(
-            _.findWhere(inputTypes, {
-              name: inputType
-            }),
-            apiSchema
-          );
-          return this.setState({
-            inputType,
-            mutation,
-            schema
+      props: props => ({
+        onSubmit: data => {
+          props.mutate({
+            mutation: mutation,
+            variables: { input: data }
           });
-        } catch (err) {
-          console.log(err);
         }
-      }
+      })
     }),
-    withHandlers({
-      onSubmit: props => data => {
-        const { api, inputType, mutation } = props;
-        return api.mutate(mutation, inputType, data);
-      }
-    }),
-    branch(({ loading }) => loading, renderComponent(<LoadingComponent />))
+    branch(({ loading }) => loading, renderComponent(<LoadingComponent />)),
+    branch(({ error }) => error, renderComponent(<ErrorComponent />)),
+    withProps(props => ({
+      schema: transformMutationToJSONSchema(
+        _.findWhere(props.apiSchema.inputTypes, {
+          name: mutationVars.inputTypeName
+        }),
+        props.apiSchema
+      )
+    }))
   );
 };
 
-export const decorateDetail = (LoadingComponent, resource, id) => {
-  console.log(LoadingComponent, resource, id);
+export const decorateDetail = (
+  LoadingComponent,
+  ErrorComponent,
+  resourceName,
+  fields,
+  params = {},
+  queryName = null
+) => {
+  const queryVars = {
+    queryName: queryName || `get${resourceName}`
+  };
   return compose(
-    lifecycle({
-      state: {
-        data: {}
-      },
-      async componentDidMount() {
-        try {
-          const { api, resources } = this.props;
-          const data = await api.detail(
-            `get${capitalize(resource)}`,
-            { id: id },
-            resources[resource].detail.fields
-          );
-          return this.setState({ data });
-        } catch (err) {
-          console.log(err);
-        }
-      }
+    graphql(gqlFetchDetail(queryVars.queryName, fields), {
+      options: props => ({
+        variables: { ...{ id: props.match.params.id }, ...params },
+        fetchPolicy: "cache-and-network"
+      }),
+      props: props => ({
+        data: props.data[queryVars.queryName]
+      })
     }),
-    branch(({ loading }) => loading, renderComponent(<LoadingComponent />))
+    branch(({ loading }) => loading, renderComponent(LoadingComponent)),
+    branch(({ error }) => error, renderComponent(ErrorComponent))
   );
 };
 
-export const decorateList = (LoadingComponent, resource) => {
-  return compose(
-    lifecycle({
-      state: { data: [] },
-      async componentDidMount() {
-        try {
-          const { api, resources } = this.props;
-          const data = await api.list(
-            `list${capitalize(pluralize(resource))}`,
-            resources[resource].list.fields
-          );
-          return this.setState({ data });
-        } catch (err) {
-          console.log(err);
+export const decorateEdit = (
+  LoadingComponent,
+  ErrorComponent,
+  resourceName,
+  fields,
+  detailQueryName = null,
+  inputTypeName = null,
+  mutationName = null,
+  queryName = null
+) => {
+  const mutationVars = {
+    detailQueryName: detailQueryName || `get${resourceName}`,
+    inputTypeName: inputTypeName || `Update${resourceName}Input`,
+    mutationName: mutationName || `update${resourceName}`,
+    listQueryName: queryName || `list${pluralize(resourceName)}`
+  };
+  const mutation = gql`mutation($input: ${mutationVars.inputTypeName}!){
+        ${mutationVars.mutationName}(input: $input) {
+          ${fields}
         }
-      }
-    }),
-    branch(({ loading }) => loading, renderComponent(<LoadingComponent />))
-  );
-};
+      }`;
 
-export const decorateUpdate = (LoadingComponent, resource, id) => {
   return compose(
-    lifecycle({
-      state: {
-        schema: {},
-        mutation: null
-      },
-      async componentDidMount() {
-        try {
-          const {
-            api,
-            apiSchema,
-            apiSchema: { inputTypes },
-            resources
-          } = this.props;
-          const formData = await api.detail(
-            `get${capitalize(resource)}`,
-            { id: id },
-            resources[resource].detail.fields
-          );
-          const mutation = `update${capitalize(resource)}`;
-          const inputType = `Update${capitalize(resource)}Input`;
-          const schema = transformMutationToJSONSchema(
-            _.findWhere(inputTypes, {
-              name: inputType
-            }),
-            apiSchema
-          );
-          return this.setState({
-            inputType,
-            mutation,
-            schema,
-            formData: _.omit(formData, "__typename")
+    graphql(gqlFetchDetail(mutationVars.detailQueryName, fields), {
+      options: props => ({
+        variables: { id: props.match.params.id },
+        fetchPolicy: "cache-and-network"
+      }),
+      props: props => ({
+        formData: _.omit(
+          props.data[mutationVars.detailQueryName],
+          "__typename"
+        ),
+        data: props.data[mutationVars.detailQueryName]
+      })
+    }),
+    graphql(mutation, {
+      props: props => ({
+        onSubmit: data => {
+          props.mutate({
+            mutation: mutation,
+            variables: { input: data }
           });
-        } catch (err) {
-          console.log(err);
         }
-      }
+      })
     }),
-    withHandlers({
-      onSubmit: props => data => {
-        const {
-          api,
-          inputType,
-          mutation,
-          match: { params }
-        } = props;
-        return api.mutate(mutation, inputType, {
-          ...{ id: params.id },
-          ...data
-        });
-      }
-    }),
-    branch(({ loading }) => loading, renderComponent(<LoadingComponent />))
+    branch(
+      ({ formData, loading }) => loading || !formData,
+      renderComponent(<LoadingComponent />)
+    ),
+    branch(({ error }) => error, renderComponent(<ErrorComponent />)),
+    withProps(props => ({
+      schema: transformMutationToJSONSchema(
+        _.findWhere(props.apiSchema.inputTypes, {
+          name: mutationVars.inputTypeName
+        }),
+        props.apiSchema
+      )
+    }))
   );
+};
+
+export const decorateList = (
+  LoadingComponent,
+  ErrorComponent,
+  resourceName,
+  fields,
+  queryName = null
+) => {
+  const queryVars = {
+    queryName: queryName || `list${pluralize(resourceName)}`
+  };
+  return compose(
+    graphql(gqlFetchList(queryVars.queryName, fields), {
+      options: {
+        fetchPolicy: "cache-and-network"
+      },
+      props: props => ({
+        data:
+          (props.data[queryVars.queryName] &&
+            props.data[queryVars.queryName].items) ||
+          []
+      })
+    }),
+    branch(({ loading }) => loading, renderComponent(LoadingComponent)),
+    branch(({ error }) => error, renderComponent(ErrorComponent))
+  );
+};
+
+const gqlFetchDetail = (queryName, fields) => {
+  return gql`query($id: ID!) {
+          ${queryName}(
+            id: $id
+          ) {
+            ${fields}
+          }
+        }`;
+};
+
+const gqlFetchList = (queryName, fields) => {
+  return gql`query($limit: Int, $nextToken: String) {
+          ${queryName} (
+            limit: $limit,
+            nextToken: $nextToken
+          ) {
+            items {
+              ${fields}
+            }
+          }
+        }`;
 };
 
 const filterRegex = new RegExp(["Filter"].join("|"));
@@ -345,7 +310,7 @@ const processRequired = fields => {
 };
 
 const transformMutationToJSONSchema = (mutation, apiSchema) => {
-  let fields = mutation.inputFields;
+  const fields = mutation.inputFields;
   return {
     type: "object",
     required: processRequired(fields),
