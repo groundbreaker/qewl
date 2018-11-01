@@ -1,5 +1,5 @@
 const expect = require("chai").expect;
-const client = require("./test/mock-client").default;
+const client = require("../test/mock-client").default;
 const resources = {
   account: {
     detail: { fields: "id name" },
@@ -14,7 +14,7 @@ const resources = {
     }
   }
 };
-const Qewl = require("./src/index.js").default;
+const Qewl = require("./index.js").default;
 
 describe("Qewl", () => {
   let service;
