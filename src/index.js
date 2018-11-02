@@ -2,68 +2,48 @@ import React from "react";
 import { introspectionQuery, parse } from "graphql";
 import { graphql } from "react-apollo";
 import { compose, branch, renderComponent, withProps } from "recompose";
-import capitalize from "underscore.string/capitalize";
 import humanize from "underscore.string/humanize";
 import pluralize from "pluralize";
 import titleize from "underscore.string/titleize";
 import _ from "underscore";
 import gql from "graphql-tag";
 
-export default class Qewl {
-  constructor(client, resources) {
-    this.client = client;
-    this.resources = resources;
-  }
-
-  async schema() {
-    try {
-      let api = {
-        enums: {},
-        mutations: {},
-        queries: {},
-        inputTypes: {},
-        filterTypes: {}
-      };
-
-      const query = parse(introspectionQuery, {
+export const withSchema = () => {
+  return compose(
+    graphql(
+      parse(introspectionQuery, {
         noLocation: true
-      });
-
-      const schema = await this.client
-        .query({
-          query: query
-        })
-        .then(response => {
-          return response.data.__schema;
-        });
-
-      if (schema) {
-        const inputObjects = _.where(schema.types, {
-          kind: "INPUT_OBJECT"
-        });
-
-        api = {
-          enums: _.where(schema.types, {
-            kind: "ENUM"
-          }),
-          filterTypes: _.filter(inputObjects, type =>
-            filterRegex.test(type.name)
-          ),
-          inputTypes: _.filter(
-            inputObjects,
-            type => !filterRegex.test(type.name)
-          ),
-          mutations: _.findWhere(schema.types, { name: "Mutation" }).fields,
-          queries: _.findWhere(schema.types, { name: "Query" }).fields
-        };
+      }),
+      {
+        options: {
+          fetchPolicy: "cache-and-network"
+        },
+        props: props => {
+          const schema = props.data.__schema;
+          const inputObjects = _.where(schema.types, {
+            kind: "INPUT_OBJECT"
+          });
+          return {
+            apiSchema: {
+              enums: _.where(schema.types, {
+                kind: "ENUM"
+              }),
+              filterTypes: _.filter(inputObjects, type =>
+                filterRegex.test(type.name)
+              ),
+              inputTypes: _.filter(
+                inputObjects,
+                type => !filterRegex.test(type.name)
+              ),
+              mutations: _.findWhere(schema.types, { name: "Mutation" }).fields,
+              queries: _.findWhere(schema.types, { name: "Query" }).fields
+            }
+          };
+        }
       }
-
-      return api;
-    } catch (err) {
-      console.log(err);
-    }
-  }
-}
+    )
+  );
+};
 
 export const decorateCreate = (
   LoadingComponent,
