@@ -19,31 +19,45 @@ export const withSchema = () => {
           fetchPolicy: "cache-and-network"
         },
         props: props => {
-          const schema = props.data.__schema;
-          const inputObjects = _.where(schema.types, {
-            kind: "INPUT_OBJECT"
-          });
           return {
-            apiSchema: {
-              enums: _.where(schema.types, {
-                kind: "ENUM"
-              }),
-              filterTypes: _.filter(inputObjects, type =>
-                filterRegex.test(type.name)
-              ),
-              inputTypes: _.filter(
-                inputObjects,
-                type => !filterRegex.test(type.name)
-              ),
-              mutations: _.findWhere(schema.types, { name: "Mutation" }).fields,
-              queries: _.findWhere(schema.types, { name: "Query" }).fields
-            }
+            apiSchema: generateApiSchema(props.data.__schema)
           };
         }
       }
     )
   );
 };
+
+export const generateApiSchema = schema => {
+  return {
+    enums: pluckEnums(schema),
+    filterTypes: pluckFilterTypes(schema),
+    inputTypes: pluckInputTypes(schema),
+    mutations: pluckMutations(schema),
+    queries: pluckQueries(schema)
+  };
+};
+
+export const pluckEnums = schema =>
+  _.where(schema.types, {
+    kind: "ENUM"
+  });
+
+export const pluckFilterTypes = schema =>
+  _.filter(pluckInputObjects(schema), type => filterRegex.test(type.name));
+
+export const pluckInputObjects = schema =>
+  _.where(schema.types, {
+    kind: "INPUT_OBJECT"
+  });
+export const pluckInputTypes = schema =>
+  _.filter(pluckInputObjects(schema), type => !filterRegex.test(type.name));
+
+export const pluckMutations = schema =>
+  _.findWhere(schema.types, { name: "Mutation" }).fields;
+
+export const pluckQueries = schema =>
+  _.findWhere(schema.types, { name: "Query" }).fields;
 
 export const decorateCreate = (
   LoadingComponent,
@@ -211,7 +225,7 @@ export const decorateList = (
   );
 };
 
-const gqlFetchDetail = (queryName, fields) => {
+export const gqlFetchDetail = (queryName, fields) => {
   return gql`query($id: ID!) {
           ${queryName}(
             id: $id
@@ -221,7 +235,7 @@ const gqlFetchDetail = (queryName, fields) => {
         }`;
 };
 
-const gqlFetchList = (queryName, fields) => {
+export const gqlFetchList = (queryName, fields) => {
   return gql`query($limit: Int, $nextToken: String) {
           ${queryName} (
             limit: $limit,
@@ -236,7 +250,7 @@ const gqlFetchList = (queryName, fields) => {
 
 const filterRegex = new RegExp(["Filter"].join("|"));
 
-const processProperties = (apiSchema, fields) => {
+export const processProperties = (apiSchema, fields) => {
   let properties = {};
 
   fields.forEach(field => {
@@ -278,7 +292,7 @@ const processProperties = (apiSchema, fields) => {
   return properties;
 };
 
-const processRequired = fields => {
+export const processRequired = fields => {
   let fieldsCopy = fields.slice();
   fieldsCopy = fields.map(field => {
     if (field.type.kind === "NON_NULL") {
@@ -289,7 +303,7 @@ const processRequired = fields => {
   return _.filter(fieldsCopy, field => field !== null);
 };
 
-const transformMutationToJSONSchema = (mutation, apiSchema) => {
+export const transformMutationToJSONSchema = (mutation, apiSchema) => {
   const fields = mutation.inputFields;
   return {
     type: "object",
