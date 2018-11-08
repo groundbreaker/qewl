@@ -1,4 +1,4 @@
-import introspectionResult from "./mock-schema.json";
+import introspectionResult from "../mock-schema.json";
 import _ from "underscore";
 import {
   generateApiSchema,
@@ -6,8 +6,8 @@ import {
   pluckFilterTypes,
   pluckInputObjects,
   pluckInputTypes
-} from "../src/index";
-import { apiSchema } from "./mock-api-schema";
+} from "../../src/withSchema";
+import { apiSchema } from "../mock-api-schema";
 
 describe("Qewl#withSchema utility functions", () => {
   it("Qewl#generateApiSchema returns processed apiSchema object", () => {
