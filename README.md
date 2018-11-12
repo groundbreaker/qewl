@@ -53,8 +53,8 @@ props.apiSchema = {
 
 This decorator uses the grapqhl hoc from the react-apollo library and the branch hoc from the recompose library to execute the typical pattern seen when fetching a singleton record from a graphql api.
 
-- Renders the <LoadingComponent /> argument when the client is executing the request.
-- Renders the <ErrorComponent /> argument when the client returns an error.
+- Renders the `LoadingComponent` argument when the client is executing the request.
+- Renders the `ErrorComponent` argument when the client returns an error.
 - Renders the decorated component with the `data` prop, which contains the requested data with the fields passed in the `fields` argument.
 
 This decorator makes the assumption that an `id` must be passed as a variable to grapqhql query to retrieve a singleton record. If an `id` is not passed in the `params` argument the decorator will look for an `id` parameter in the `match` prop that `react-router-dom` makes available to its routes.
@@ -104,8 +104,8 @@ props.data = {
 
 This decorator uses the grapqhl hoc from the react-apollo library and the branch hoc from the recompose library to execute the typical pattern seen when fetching a collection records from a graphql api.
 
-- Renders the <LoadingComponent /> argument when the client is executing the request.
-- Renders the <ErrorComponent /> argument when the client returns an error.
+- Renders the `LoadingComponent` argument when the client is executing the request.
+- Renders the `ErrorComponent` argument when the client returns an error.
 - Renders the decorated component with the `data` prop, which contains a collection of records with the fields passed in the `fields` argument.
 
 If a `queryName` is not passed as an argument the decorator defaults to `list${pluralize(resourceName)}` where `resourceName` is the `resourceName` argument. 
