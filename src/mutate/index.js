@@ -65,6 +65,7 @@ const decorateEdit = (
     mutationName,
     queryName,
     resourceName,
+    true,
     detailQueryName
   );
   const mutation = gqlMutate(mutationVars, fields);
@@ -73,7 +74,12 @@ const decorateEdit = (
     graphql(gqlFetchDetail(mutationVars.detailQueryName, fields), {
       options: props => ({
         variables: { id: (params && params.id) || props.match.params.id },
-        fetchPolicy: "cache-and-network"
+        fetchPolicy: "cache-and-network",
+        refetchQueries: [
+          {
+            query: gqlFetchList(mutationVars.queryName, fields)
+          }
+        ]
       }),
       props: props => ({
         formData: _.omit(
@@ -86,10 +92,7 @@ const decorateEdit = (
     graphql(mutation, {
       props: props => ({
         onSubmit: data => {
-          props.mutate({
-            mutation: mutation,
-            variables: { input: data }
-          });
+          props.mutate({ mutation: mutation, variables: { input: data } });
         }
       })
     }),
@@ -115,13 +118,19 @@ export const processMutationVars = (
   mutationName,
   queryName,
   resourceName,
+  update = false,
   detailQueryName = null
 ) => {
   return {
     detailQueryName: detailQueryName || `get${resourceName}`,
-    inputTypeName: inputTypeName || `Create${resourceName}Input`,
-    mutationName: mutationName || `create${resourceName}`,
-    queryName: queryName || `list${pluralize(resourceName)}`
+    inputTypeName:
+      inputTypeName ||
+      (update ? `Update${resourceName}Input` : `Create${resourceName}Input`),
+    mutationName:
+      mutationName ||
+      (update ? `update${resourceName}` : `create${resourceName}`),
+    queryName: queryName || `list${pluralize(resourceName)}`,
+    updateMutationName: mutationName || `update${resourceName}`
   };
 };
 
@@ -184,7 +193,7 @@ export const processSchemas = (props, mutationVars) => {
   }).inputFields;
   return {
     schema: toJSONSchema(fields, props.apiSchema),
-    uiSchema: toUISchema(fields, props.apiSchema)
+    uiSchema: toUISchema(fields)
   };
 };
 
@@ -196,7 +205,7 @@ export const toJSONSchema = (fields, apiSchema) => {
   };
 };
 
-export const toUISchema = (fields, apiSchema) => {
+export const toUISchema = fields => {
   const uiSchema = {};
   fields.map(field => {
     uiSchema[field.name] = {
