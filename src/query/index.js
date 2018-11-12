@@ -44,7 +44,8 @@ const decorateList = (
   return compose(
     graphql(gqlFetchList(query, fields), {
       options: {
-        fetchPolicy: "cache-and-network"
+        fetchPolicy: "cache-and-network",
+        variables: params
       },
       props: props => ({
         data: (props.data[query] && props.data[query].items) || []
