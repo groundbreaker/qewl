@@ -40,7 +40,7 @@ export default App;
 This decorator sets the `apiSchema` prop for the decorated component that has the following structure.
 
 ```js
-{
+props.apiSchema = {
   enums: [],
   filterTypes: [],
   mutations: [],
@@ -145,7 +145,7 @@ export default List;
 #### Return Value
 
 ```js
-[
+props.data = [
   {
     __typename: 'Account',
     id: '72fe3969-cf72-4aa6-bf61-c3c647fa543c',
