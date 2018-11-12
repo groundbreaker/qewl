@@ -36,6 +36,7 @@ const decorateList = (
   ErrorComponent,
   resourceName,
   fields,
+  params = {},
   queryName = null
 ) => {
   const query = queryName || `list${pluralize(resourceName)}`;

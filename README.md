@@ -49,7 +49,7 @@ This decorator sets the `apiSchema` prop for the decorated component that has th
 }
 ```
 
-### decorateDetail(<LoadingComponent />, <ErrorComponent />, resourceName, fields, params = {}, queryName = null)
+### decorateDetail(LoadingComponent, ErrorComponent, resourceName, fields, params = {}, queryName = null)
 
 This decorator uses the grapqhl hoc from the react-apollo library and the branch hoc from the recompose library to execute the typical pattern seen when fetching a singleton record from a graphql api.
 
@@ -100,7 +100,7 @@ props.data = {
 }
 ```
 
-### decorateList(<LoadingComponent />, <ErrorComponent />, resourceName, fields, params = {}, queryName = null)
+### decorateList(LoadingComponent, ErrorComponent, resourceName, fields, params = {}, queryName = null)
 
 This decorator uses the grapqhl hoc from the react-apollo library and the branch hoc from the recompose library to execute the typical pattern seen when fetching a collection records from a graphql api.
 
