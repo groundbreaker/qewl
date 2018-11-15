@@ -195,7 +195,6 @@ export const processRequired = fields => {
 };
 
 export const processSchemas = (props, mutationVars) => {
-  console.log(props);
   const fields = _.findWhere(props.apiSchema.inputTypes, {
     name: mutationVars.inputTypeName
   }).inputFields;
