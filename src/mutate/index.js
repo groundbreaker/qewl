@@ -72,15 +72,22 @@ const decorateEdit = (
 
   return compose(
     graphql(gqlFetchDetail(mutationVars.detailQueryName, fields), {
-      options: props => ({
-        variables: { id: (params && params.id) || props.match.params.id },
-        fetchPolicy: "cache-and-network",
-        refetchQueries: [
-          {
-            query: gqlFetchList(mutationVars.queryName, fields)
-          }
-        ]
-      }),
+      options: props => {
+        return {
+          variables: {
+            id:
+              (props && props.id) ||
+              (params && params.id) ||
+              props.match.params.id
+          },
+          fetchPolicy: "cache-and-network",
+          refetchQueries: [
+            {
+              query: gqlFetchList(mutationVars.queryName, fields)
+            }
+          ]
+        };
+      },
       props: props => ({
         formData: _.omit(
           props.data[mutationVars.detailQueryName],
@@ -209,9 +216,6 @@ export const toUISchema = fields => {
   const uiSchema = {};
   fields.map(field => {
     uiSchema[field.name] = {
-      "ui:options": {
-        label: false
-      },
       "ui:placeholder": titleize(humanize(field.name))
     };
   });
