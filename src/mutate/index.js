@@ -245,7 +245,7 @@ export const toUISchema = (fields, apiSchema) => {
       let inputFields = _.findWhere(apiSchema.inputTypes, {
         name: field.type.ofType.name
       }).inputFields;
-      const nestedUISchema = inputFields.reduce(function(memo, cur) {
+      const nestedUISchema = inputFields.reduce((memo, cur) => {
         memo[cur.name] = { "ui:placeholder": titleize(humanize(cur.name)) };
         return memo;
       }, {});
