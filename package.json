@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "webpack-cli --mode=production",
-    "dev": "yarn build -w",
+    "dev": "yarn build --watch",
     "test": "jest --env=jsdom"
   },
   "dependencies": {

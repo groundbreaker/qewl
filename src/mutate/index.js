@@ -2,11 +2,21 @@ import React from "react";
 import pluralize from "pluralize";
 import gql from "graphql-tag";
 import { graphql } from "react-apollo";
-import { compose, branch, renderComponent, withProps } from "recompose";
+import {
+  compose,
+  branch,
+  renderComponent,
+  withProps,
+  withStateHandlers
+} from "recompose";
 import _ from "underscore";
 import titleize from "underscore.string/titleize";
 import humanize from "underscore.string/humanize";
 import { gqlFetchDetail, gqlFetchList } from "../common";
+
+const awsScalars = {
+  awsurl: "string"
+};
 
 const decorateCreate = (
   LoadingComponent,
@@ -43,9 +53,17 @@ const decorateCreate = (
         }
       })
     }),
+    withStateHandlers(
+      { newFormData: null },
+      {
+        onChange: () => ({ newFormData }) => ({
+          newFormData: newFormData
+        })
+      }
+    ),
     branch(({ loading }) => loading, renderComponent(<LoadingComponent />)),
     branch(({ error }) => error, renderComponent(<ErrorComponent />)),
-    withProps(props => processSchemas(props, mutationVars))
+    withProps(props => processSchemas(props.apiSchema, mutationVars))
   );
 };
 
@@ -108,7 +126,7 @@ const decorateEdit = (
       renderComponent(<LoadingComponent />)
     ),
     branch(({ error }) => error, renderComponent(<ErrorComponent />)),
-    withProps(props => processSchemas(props, mutationVars))
+    withProps(props => processSchemas(props.apiSchema, mutationVars))
   );
 };
 
@@ -150,33 +168,41 @@ export const processProperties = (apiSchema, fields) => {
     }
 
     if (!field.type.ofType) {
+      const typeName = field.type.name.toLowerCase();
       properties[field.name] = {
-        type: field.type.name.toLowerCase(),
+        type: awsScalars[typeName] || typeName,
         title: titleize(humanize(field.name))
       };
     }
 
-    if (field.type.ofType && field.type.ofType.kind === "SCALAR") {
-      properties[field.name] = {
-        type: field.type.ofType.name.toLowerCase(),
-        title: titleize(humanize(field.name))
-      };
-    }
+    if (field.type.ofType) {
+      if (field.type.ofType.kind === "INPUT_OBJECT") {
+        const fields = _.findWhere(apiSchema.inputTypes, {
+          name: field.type.ofType.name
+        }).inputFields;
+        properties[field.name] = toJSONSchema(fields, apiSchema);
+      }
 
-    if (
-      (field.type.ofType && field.type.ofType.kind === "ENUM") ||
-      field.type.kind === "ENUM"
-    ) {
-      const enumerator = _.findWhere(apiSchema.enums, {
-        name: (field.type.ofType && field.type.ofType.name) || field.type.name
-      });
-      const values = _.pluck(enumerator.enumValues, "name");
-      properties[field.name] = {
-        type: "string",
-        title: titleize(humanize(field.name)),
-        enum: values,
-        enumNames: values.map(value => titleize(value))
-      };
+      if (field.type.ofType.kind === "SCALAR") {
+        const typeName = field.type.ofType.name.toLowerCase();
+        properties[field.name] = {
+          type: awsScalars[typeName] || typeName,
+          title: titleize(humanize(field.name))
+        };
+      }
+
+      if (field.type.ofType.kind === "ENUM" || field.type.kind === "ENUM") {
+        const enumerator = _.findWhere(apiSchema.enums, {
+          name: (field.type.ofType && field.type.ofType.name) || field.type.name
+        });
+        const values = _.pluck(enumerator.enumValues, "name");
+        properties[field.name] = {
+          type: "string",
+          title: titleize(humanize(field.name)),
+          enum: values,
+          enumNames: values.map(value => titleize(value))
+        };
+      }
     }
   });
 
@@ -194,13 +220,13 @@ export const processRequired = fields => {
   return _.filter(fieldsCopy, field => field !== null);
 };
 
-export const processSchemas = (props, mutationVars) => {
-  const fields = _.findWhere(props.apiSchema.inputTypes, {
+export const processSchemas = (apiSchema, mutationVars) => {
+  const fields = _.findWhere(apiSchema.inputTypes, {
     name: mutationVars.inputTypeName
   }).inputFields;
   return {
-    schema: toJSONSchema(fields, props.apiSchema),
-    uiSchema: toUISchema(fields)
+    schema: toJSONSchema(fields, apiSchema),
+    uiSchema: toUISchema(fields, apiSchema)
   };
 };
 
@@ -212,13 +238,33 @@ export const toJSONSchema = (fields, apiSchema) => {
   };
 };
 
-export const toUISchema = fields => {
+export const toUISchema = (fields, apiSchema) => {
   const uiSchema = {};
   fields.map(field => {
+    if (field.type.ofType && field.type.ofType.kind === "INPUT_OBJECT") {
+      let inputFields = _.findWhere(apiSchema.inputTypes, {
+        name: field.type.ofType.name
+      }).inputFields;
+      const nestedUISchema = inputFields.reduce(function(memo, cur) {
+        memo[cur.name] = { "ui:placeholder": titleize(humanize(cur.name)) };
+        return memo;
+      }, {});
+
+      return (uiSchema[field.name] = {
+        ...{
+          "ui:options": {
+            label: false
+          }
+        },
+        ...nestedUISchema
+      });
+    }
+
     uiSchema[field.name] = {
       "ui:placeholder": titleize(humanize(field.name))
     };
   });
+
   return uiSchema;
 };
 
