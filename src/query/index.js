@@ -42,9 +42,6 @@ const decorateList = ({ Loading, resource, fields, params, queryName }) => {
         data: (props.data[query] && props.data[query].items) || []
       })
     }),
-    withProps(props => ({
-      LoadingComponent: props.LoadingComponent
-    })),
     branch(
       ({ loading }) => loading,
       renderComponent(({ LoadingComponent }) =>
