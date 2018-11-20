@@ -18,20 +18,19 @@ const awsScalars = {
   awsurl: "string"
 };
 
-const decorateCreate = (
-  LoadingComponent,
-  ErrorComponent,
-  resourceName,
+const decorateCreate = ({
+  Loading,
+  resource,
   fields,
-  inputTypeName = null,
-  mutationName = null,
-  queryName = null
-) => {
+  inputTypeName,
+  mutationName,
+  queryName
+}) => {
   const mutationVars = processMutationVars(
     inputTypeName,
     mutationName,
     queryName,
-    resourceName
+    resource
   );
   const mutation = gqlMutate(mutationVars, fields);
 
@@ -61,28 +60,26 @@ const decorateCreate = (
         })
       }
     ),
-    branch(({ loading }) => loading, renderComponent(<LoadingComponent />)),
-    branch(({ error }) => error, renderComponent(<ErrorComponent />)),
+    branch(({ loading }) => loading, renderComponent(<Loading />)),
     withProps(props => processSchemas(props.apiSchema, mutationVars))
   );
 };
 
-const decorateEdit = (
-  LoadingComponent,
-  ErrorComponent,
-  resourceName,
+const decorateEdit = ({
+  Loading,
+  resource,
   fields,
-  params = {},
-  detailQueryName = null,
-  inputTypeName = null,
-  mutationName = null,
-  queryName = null
-) => {
+  params,
+  detailQueryName,
+  inputTypeName,
+  mutationName,
+  queryName
+}) => {
   const mutationVars = processMutationVars(
     inputTypeName,
     mutationName,
     queryName,
-    resourceName,
+    resource,
     true,
     detailQueryName
   );
@@ -123,9 +120,8 @@ const decorateEdit = (
     }),
     branch(
       ({ formData, loading }) => loading || !formData,
-      renderComponent(<LoadingComponent />)
+      renderComponent(<Loading />)
     ),
-    branch(({ error }) => error, renderComponent(<ErrorComponent />)),
     withProps(props => processSchemas(props.apiSchema, mutationVars))
   );
 };

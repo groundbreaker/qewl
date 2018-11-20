@@ -4,15 +4,8 @@ import pluralize from "pluralize";
 import _ from "underscore";
 import { gqlFetchDetail, gqlFetchList } from "../common";
 
-const decorateDetail = (
-  LoadingComponent,
-  ErrorComponent,
-  resourceName,
-  fields,
-  params = {},
-  queryName = null
-) => {
-  const query = queryName || `get${resourceName}`;
+const decorateDetail = ({ Loading, resource, fields, params, queryName }) => {
+  const query = queryName || `get${resource}`;
 
   return compose(
     graphql(gqlFetchDetail(query, fields), {
@@ -26,20 +19,12 @@ const decorateDetail = (
         data: props.data[query]
       })
     }),
-    branch(({ loading }) => loading, renderComponent(LoadingComponent)),
-    branch(({ error }) => error, renderComponent(ErrorComponent))
+    branch(({ loading }) => loading, renderComponent(Loading))
   );
 };
 
-const decorateList = (
-  LoadingComponent,
-  ErrorComponent,
-  resourceName,
-  fields,
-  params = {},
-  queryName = null
-) => {
-  const query = queryName || `list${pluralize(resourceName)}`;
+const decorateList = ({ Loading, resource, fields, params, queryName }) => {
+  const query = queryName || `list${pluralize(resource)}`;
 
   return compose(
     graphql(gqlFetchList(query, fields), {
@@ -51,8 +36,7 @@ const decorateList = (
         data: (props.data[query] && props.data[query].items) || []
       })
     }),
-    branch(({ loading }) => loading, renderComponent(LoadingComponent)),
-    branch(({ error }) => error, renderComponent(ErrorComponent))
+    branch(({ loading }) => loading, renderComponent(Loading))
   );
 };
 
