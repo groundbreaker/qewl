@@ -60,7 +60,12 @@ const decorateCreate = ({
         })
       }
     ),
-    branch(({ loading }) => loading, renderComponent(<Loading />)),
+    branch(
+      ({ loading }) => loading,
+      renderComponent(({ LoadingComponent }) =>
+        Loading ? <Loading /> : <LoadingComponent />
+      )
+    ),
     withProps(props => processSchemas(props.apiSchema, mutationVars))
   );
 };
@@ -118,11 +123,13 @@ const decorateEdit = ({
         }
       })
     }),
+    withProps(props => processSchemas(props.apiSchema, mutationVars)),
     branch(
       ({ formData, loading }) => loading || !formData,
-      renderComponent(<Loading />)
-    ),
-    withProps(props => processSchemas(props.apiSchema, mutationVars))
+      renderComponent(({ LoadingComponent }) =>
+        Loading ? <Loading /> : <LoadingComponent />
+      )
+    )
   );
 };
 
