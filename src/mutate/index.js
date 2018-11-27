@@ -109,10 +109,7 @@ const decorateEdit = ({
         };
       },
       props: props => ({
-        formData: _.omit(
-          props.data[mutationVars.detailQueryName],
-          "__typename"
-        ),
+        formData: processFormData(props.data[mutationVars.detailQueryName]),
         data: props.data[mutationVars.detailQueryName]
       })
     }),
@@ -139,6 +136,16 @@ export const gqlMutate = (mutationVars, fields) => {
           ${fields}
         }
       }`;
+};
+
+export const processFormData = data => {
+  return _.mapObject(_.omit(data, "__typename"), v => {
+    if (_.isObject(v)) {
+      return _.omit(v, "__typename");
+    }
+
+    return v;
+  });
 };
 
 export const processMutationVars = (
