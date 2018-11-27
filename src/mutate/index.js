@@ -2,13 +2,7 @@ import React from "react";
 import pluralize from "pluralize";
 import gql from "graphql-tag";
 import { graphql } from "react-apollo";
-import {
-  compose,
-  branch,
-  renderComponent,
-  withProps,
-  withStateHandlers
-} from "recompose";
+import { compose, branch, renderComponent, withProps } from "recompose";
 import _ from "underscore";
 import titleize from "underscore.string/titleize";
 import humanize from "underscore.string/humanize";
@@ -52,14 +46,6 @@ const decorateCreate = ({
         }
       })
     }),
-    withStateHandlers(
-      { newFormData: null },
-      {
-        onChange: () => ({ newFormData }) => ({
-          newFormData: newFormData
-        })
-      }
-    ),
     branch(
       ({ loading }) => loading,
       renderComponent(({ LoadingComponent }) =>
