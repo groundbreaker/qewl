@@ -167,34 +167,51 @@ export const processProperties = (apiSchema, fields) => {
       const typeName = field.type.name.toLowerCase();
       properties[field.name] = {
         type: awsScalars[typeName] || typeName,
-        title: titleize(humanize(field.name))
+        title: processTitle(field.name)
       };
     }
 
     if (field.type.ofType) {
-      if (field.type.ofType.kind === "INPUT_OBJECT") {
-        const fields = _.findWhere(apiSchema.inputTypes, {
-          name: field.type.ofType.name
-        }).inputFields;
-        properties[field.name] = toJSONSchema(fields, apiSchema);
-      }
+      const {
+        type: {
+          ofType: { kind, name, ofType }
+        }
+      } = field;
 
-      if (field.type.ofType.kind === "SCALAR") {
-        const typeName = field.type.ofType.name.toLowerCase();
+      if (kind === "LIST") {
         properties[field.name] = {
-          type: awsScalars[typeName] || typeName,
-          title: titleize(humanize(field.name))
+          type: "array",
+          title: processTitle(field.name),
+          [field.name]: toJSONSchema(
+            pluckFields(apiSchema, ofType.name),
+            apiSchema
+          )
         };
       }
 
-      if (field.type.ofType.kind === "ENUM" || field.type.kind === "ENUM") {
+      if (kind === "INPUT_OBJECT") {
+        properties[field.name] = toJSONSchema(
+          pluckFields(apiSchema, name),
+          apiSchema
+        );
+      }
+
+      if (kind === "SCALAR") {
+        const typeName = name.toLowerCase();
+        properties[field.name] = {
+          type: awsScalars[typeName] || typeName,
+          title: processTitle(field.name)
+        };
+      }
+
+      if (kind === "ENUM" || field.type.kind === "ENUM") {
         const enumerator = _.findWhere(apiSchema.enums, {
-          name: (field.type.ofType && field.type.ofType.name) || field.type.name
+          name: name || field.type.name
         });
         const values = _.pluck(enumerator.enumValues, "name");
         properties[field.name] = {
           type: "string",
-          title: titleize(humanize(field.name)),
+          title: processTitle(field.name),
           enum: values,
           enumNames: values.map(value => titleize(value))
         };
@@ -216,15 +233,20 @@ export const processRequired = fields => {
   return _.filter(fieldsCopy, field => field !== null);
 };
 
-export const processSchemas = (apiSchema, mutationVars) => {
-  const fields = _.findWhere(apiSchema.inputTypes, {
-    name: mutationVars.inputTypeName
+export const pluckFields = (apiSchema, inputName) =>
+  _.findWhere(apiSchema.inputTypes, {
+    name: inputName
   }).inputFields;
+
+export const processSchemas = (apiSchema, mutationVars) => {
+  const fields = pluckFields(apiSchema, mutationVars.inputTypeName);
   return {
     schema: toJSONSchema(fields, apiSchema),
     uiSchema: toUISchema(fields, apiSchema)
   };
 };
+
+export const processTitle = title => titleize(humanize(title));
 
 export const toJSONSchema = (fields, apiSchema) => {
   return {
@@ -242,7 +264,7 @@ export const toUISchema = (fields, apiSchema) => {
         name: field.type.ofType.name
       }).inputFields;
       const nestedUISchema = inputFields.reduce((memo, cur) => {
-        memo[cur.name] = { "ui:placeholder": titleize(humanize(cur.name)) };
+        memo[cur.name] = { "ui:placeholder": processTitle(cur.name) };
         return memo;
       }, {});
 
@@ -256,9 +278,7 @@ export const toUISchema = (fields, apiSchema) => {
       });
     }
 
-    uiSchema[field.name] = {
-      "ui:placeholder": titleize(humanize(field.name))
-    };
+    uiSchema[field.name] = { "ui:placeholder": processTitle(field.name) };
   });
 
   return uiSchema;
