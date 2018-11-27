@@ -9,6 +9,7 @@ import humanize from "underscore.string/humanize";
 import { gqlFetchDetail, gqlFetchList } from "../common";
 
 const awsScalars = {
+  awsemail: "string",
   awsurl: "string"
 };
 
@@ -164,11 +165,20 @@ export const processProperties = (apiSchema, fields) => {
     }
 
     if (!field.type.ofType) {
-      const typeName = field.type.name.toLowerCase();
-      properties[field.name] = {
-        type: awsScalars[typeName] || typeName,
-        title: processTitle(field.name)
-      };
+      const {
+        type: { kind, name }
+      } = field;
+
+      if (kind === "SCALAR") {
+        properties[field.name] = processScalar(field.name, name.toLowerCase());
+      }
+
+      if (kind === "ENUM") {
+        properties[field.name] = processEnum(
+          field.name,
+          pluckEnumValues(apiSchema, name)
+        );
+      }
     }
 
     if (field.type.ofType) {
@@ -197,30 +207,40 @@ export const processProperties = (apiSchema, fields) => {
       }
 
       if (kind === "SCALAR") {
-        const typeName = name.toLowerCase();
-        properties[field.name] = {
-          type: awsScalars[typeName] || typeName,
-          title: processTitle(field.name)
-        };
+        properties[field.name] = processScalar(field.name, name.toLowerCase());
       }
 
-      if (kind === "ENUM" || field.type.kind === "ENUM") {
-        const enumerator = _.findWhere(apiSchema.enums, {
-          name: name || field.type.name
-        });
-        const values = _.pluck(enumerator.enumValues, "name");
-        properties[field.name] = {
-          type: "string",
-          title: processTitle(field.name),
-          enum: values,
-          enumNames: values.map(value => titleize(value))
-        };
+      if (kind === "ENUM") {
+        properties[field.name] = processEnum(
+          field.name,
+          pluckEnumValues(apiSchema, name)
+        );
       }
     }
   });
 
   return properties;
 };
+
+export const pluckEnumValues = (apiSchema, name) =>
+  _.pluck(
+    _.findWhere(apiSchema.enums, {
+      name: name
+    }).enumValues,
+    "name"
+  );
+
+export const pluckFields = (apiSchema, inputName) =>
+  _.findWhere(apiSchema.inputTypes, {
+    name: inputName
+  }).inputFields;
+
+export const processEnum = (fieldName, values) => ({
+  type: "string",
+  title: processTitle(fieldName),
+  enum: values,
+  enumNames: values.map(value => titleize(value))
+});
 
 export const processRequired = fields => {
   let fieldsCopy = fields.slice();
@@ -233,10 +253,10 @@ export const processRequired = fields => {
   return _.filter(fieldsCopy, field => field !== null);
 };
 
-export const pluckFields = (apiSchema, inputName) =>
-  _.findWhere(apiSchema.inputTypes, {
-    name: inputName
-  }).inputFields;
+export const processScalar = (fieldName, typeName) => ({
+  type: awsScalars[typeName] || typeName,
+  title: processTitle(fieldName)
+});
 
 export const processSchemas = (apiSchema, mutationVars) => {
   const fields = pluckFields(apiSchema, mutationVars.inputTypeName);
