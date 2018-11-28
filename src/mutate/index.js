@@ -10,6 +10,10 @@ import { gqlFetchDetail, gqlFetchList } from "../common";
 
 const awsScalars = {
   awsemail: "string",
+  awsdate: "string",
+  awsdatetime: "string",
+  awsjson: "string",
+  awsipaddress: "string",
   awsurl: "string"
 };
 
@@ -179,6 +183,13 @@ export const processProperties = (apiSchema, fields) => {
           pluckEnumValues(apiSchema, name)
         );
       }
+
+      if (kind === "INPUT_OBJECT") {
+        properties[field.name] = toJSONSchema(
+          pluckFields(apiSchema, name),
+          apiSchema
+        );
+      }
     }
 
     if (field.type.ofType) {
@@ -192,10 +203,7 @@ export const processProperties = (apiSchema, fields) => {
         properties[field.name] = {
           type: "array",
           title: processTitle(field.name),
-          [field.name]: toJSONSchema(
-            pluckFields(apiSchema, ofType.name),
-            apiSchema
-          )
+          items: toJSONSchema(pluckFields(apiSchema, ofType.name), apiSchema)
         };
       }
 
