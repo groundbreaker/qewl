@@ -14,7 +14,8 @@ const awsScalars = {
   awsdatetime: "string",
   awsjson: "string",
   awsipaddress: "string",
-  awsurl: "string"
+  awsurl: "string",
+  awsphone: "string"
 };
 
 const decorateCreate = ({
