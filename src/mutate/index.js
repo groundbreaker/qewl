@@ -44,12 +44,11 @@ const decorateCreate = ({
         ]
       },
       props: props => ({
-        onSubmit: data => {
+        onSubmit: data =>
           props.mutate({
             mutation: mutation,
             variables: { input: data }
-          });
-        }
+          })
       })
     }),
     branch(
@@ -107,9 +106,8 @@ const decorateEdit = ({
     }),
     graphql(mutation, {
       props: props => ({
-        onSubmit: data => {
-          props.mutate({ mutation: mutation, variables: { input: data } });
-        }
+        onSubmit: data =>
+          props.mutate({ mutation: mutation, variables: { input: data } })
       })
     }),
     withProps(props => processSchemas(props.apiSchema, mutationVars)),
