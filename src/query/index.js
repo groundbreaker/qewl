@@ -17,7 +17,8 @@ const decorateDetail = ({ Loading, resource, fields, params, queryName }) => {
         fetchPolicy: "cache-and-network"
       }),
       props: props => ({
-        data: props.data[query]
+        data: props.data[query],
+        loading: props.data.loading
       })
     }),
     branch(
@@ -39,7 +40,8 @@ const decorateList = ({ Loading, resource, fields, params, queryName }) => {
         variables: params
       },
       props: props => ({
-        data: (props.data[query] && props.data[query].items) || []
+        data: (props.data[query] && props.data[query].items) || [],
+        loading: props.data.loading
       })
     }),
     branch(
