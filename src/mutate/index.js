@@ -255,7 +255,7 @@ export const processEnum = (fieldName, values) => ({
   type: "string",
   title: processTitle(fieldName),
   enum: values,
-  enumNames: values.map(value => humanize(value))
+  enumNames: values.map(value => titleize(humanize(value)))
 });
 
 export const processRequired = fields => {
