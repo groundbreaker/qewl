@@ -225,6 +225,14 @@ export const processProperties = (apiSchema, fields) => {
         );
       }
     }
+    if (field.type.kind === "LIST") {
+      const { name, kind, ofType } = field.type;
+      properties[field.name] = {
+        type: "array",
+        title: processTitle(field.name),
+        items: toJSONSchema(pluckFields(apiSchema, ofType.name), apiSchema)
+      };
+    }
   });
 
   return properties;
@@ -247,7 +255,7 @@ export const processEnum = (fieldName, values) => ({
   type: "string",
   title: processTitle(fieldName),
   enum: values,
-  enumNames: values.map(value => titleize(value))
+  enumNames: values.map(value => humanize(value))
 });
 
 export const processRequired = fields => {
