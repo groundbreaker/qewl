@@ -131,6 +131,10 @@ export const gqlMutate = (mutationVars, fields) => {
 
 export const processFormData = data => {
   return _.mapObject(_.omit(data, "__typename"), v => {
+    if (_.isArray(v)) {
+      return v.map(processFormData);
+    }
+
     if (_.isObject(v)) {
       return _.omit(v, "__typename");
     }
