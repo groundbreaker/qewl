@@ -102,7 +102,8 @@ const decorateEdit = ({
       props: props => ({
         formData: processFormData(props.data[mutationVars.detailQueryName]),
         data: props.data[mutationVars.detailQueryName],
-        loading: props.data.loading
+        loading: props.data.loading,
+        ...() => (props.error ? { apolloInternalError: props.error } : {})
       })
     }),
     graphql(mutation, {
