@@ -102,7 +102,9 @@ const decorateEdit = ({
       props: props => ({
         formData: processFormData(props.data[mutationVars.detailQueryName]),
         data: props.data[mutationVars.detailQueryName],
-        loading: props.data.loading
+        loading: props.data.loading,
+        ...(() =>
+          props.data.error ? { apolloInternalError: props.data.error } : {})()
       })
     }),
     graphql(mutation, {
@@ -324,4 +326,4 @@ export const toUISchema = (fields, apiSchema) => {
   return uiSchema;
 };
 
-export { decorateCreate, decorateEdit, decorateDelete };
+export { decorateCreate, decorateEdit };
