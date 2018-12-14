@@ -326,4 +326,4 @@ export const toUISchema = (fields, apiSchema) => {
   return uiSchema;
 };
 
-export { decorateCreate, decorateEdit, decorateDelete };
+export { decorateCreate, decorateEdit };
