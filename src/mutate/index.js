@@ -133,6 +133,10 @@ export const gqlMutate = (mutationVars, fields) => {
 
 export const processFormData = data => {
   return _.mapObject(_.omit(data, "__typename"), v => {
+    if (_.isArray(v)) {
+      return v.map(processFormData);
+    }
+
     if (_.isObject(v)) {
       return _.omit(v, "__typename");
     }
@@ -172,8 +176,16 @@ export const processProperties = (apiSchema, fields) => {
 
     if (!field.type.ofType) {
       const {
-        type: { kind, name }
+        type: { kind, name, ofType }
       } = field;
+
+      if (kind === "LIST") {
+        properties[field.name] = {
+          type: "array",
+          title: processTitle(field.name),
+          items: toJSONSchema(pluckFields(apiSchema, ofType.name), apiSchema)
+        };
+      }
 
       if (kind === "SCALAR") {
         properties[field.name] = processScalar(field.name, name.toLowerCase());
@@ -226,14 +238,6 @@ export const processProperties = (apiSchema, fields) => {
           pluckEnumValues(apiSchema, name)
         );
       }
-    }
-    if (field.type.kind === "LIST") {
-      const { name, kind, ofType } = field.type;
-      properties[field.name] = {
-        type: "array",
-        title: processTitle(field.name),
-        items: toJSONSchema(pluckFields(apiSchema, ofType.name), apiSchema)
-      };
     }
   });
 
@@ -322,4 +326,4 @@ export const toUISchema = (fields, apiSchema) => {
   return uiSchema;
 };
 
-export { decorateCreate, decorateEdit };
+export { decorateCreate, decorateEdit, decorateDelete };
