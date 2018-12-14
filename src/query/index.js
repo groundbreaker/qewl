@@ -34,15 +34,28 @@ const decorateList = ({ Loading, resource, fields, params, queryName }) => {
   const query = queryName || `list${pluralize(resource)}`;
 
   return compose(
-    graphql(gqlFetchList(query, fields), {
+    graphql(gqlFetchList(query, fields, `${resource}FilterInput`), {
       options: {
         fetchPolicy: "network-only",
         variables: params
       },
-      props: props => ({
-        data: (props.data[query] && props.data[query].items) || [],
-        loading: props.data.loading
-      })
+      props: props => {
+        const {
+          data: { fetchMore }
+        } = props;
+        return {
+          filterQuery: params => {
+            fetchMore({
+              variables: params,
+              updateQuery: (previousResult, { fetchMoreResult }) => ({
+                [query]: fetchMoreResult[query]
+              })
+            });
+          },
+          data: (props.data[query] && props.data[query].items) || [],
+          loading: props.data.loading
+        };
+      }
     }),
     branch(
       ({ loading }) => loading,

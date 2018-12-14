@@ -10,9 +10,24 @@ export const gqlFetchDetail = (queryName, fields) => {
         }`;
 };
 
-export const gqlFetchList = (queryName, fields) => {
+export const gqlFetchList = (queryName, fields, filter = null) => {
+  if (filter) {
+    return gql`query($limit: Int, $nextToken: String, $filter: ${filter}) {
+          ${queryName} (
+            filter: $filter,
+            limit: $limit,
+            nextToken: $nextToken
+          ) {
+            items {
+              ${fields}
+            }
+          }
+        }`;
+  }
+
   return gql`query($limit: Int, $nextToken: String) {
           ${queryName} (
+            filter: $filter,
             limit: $limit,
             nextToken: $nextToken
           ) {
