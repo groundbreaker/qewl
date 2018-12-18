@@ -18,28 +18,16 @@ const awsScalars = {
   awsphone: "string"
 };
 
-const decorateCreate = ({
-  Loading,
-  resource,
-  fields,
-  inputTypeName,
-  mutationName,
-  queryName
-}) => {
-  const mutationVars = processMutationVars(
-    inputTypeName,
-    mutationName,
-    queryName,
-    resource
-  );
-  const mutation = gqlMutate(mutationVars, fields);
+const decorateCreate = args => {
+  const mutationVars = processMutationVars(args);
+  const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
     graphql(mutation, {
       options: {
         refetchQueries: [
           {
-            query: gqlFetchList(mutationVars.queryName, fields)
+            query: gqlFetchList(mutationVars.queryName, args.fields)
           }
         ]
       },
@@ -54,47 +42,31 @@ const decorateCreate = ({
     branch(
       ({ loading }) => loading,
       renderComponent(({ LoadingComponent }) =>
-        Loading ? <Loading /> : <LoadingComponent />
+        args.Loading ? <Loading /> : <LoadingComponent />
       )
     ),
     withProps(props => processSchemas(props.apiSchema, mutationVars))
   );
 };
 
-const decorateEdit = ({
-  Loading,
-  resource,
-  fields,
-  params,
-  detailQueryName,
-  inputTypeName,
-  mutationName,
-  queryName
-}) => {
-  const mutationVars = processMutationVars(
-    inputTypeName,
-    mutationName,
-    queryName,
-    resource,
-    true,
-    detailQueryName
-  );
-  const mutation = gqlMutate(mutationVars, fields);
+const decorateEdit = args => {
+  const mutationVars = processMutationVars({ ...args, ...{ update: true } });
+  const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
-    graphql(gqlFetchDetail(mutationVars.detailQueryName, fields), {
+    graphql(gqlFetchDetail(mutationVars.detailQueryName, args.fields), {
       options: props => {
         return {
           variables: {
             id:
               (props && props.id) ||
-              (params && params.id) ||
+              (args.params && args.params.id) ||
               props.match.params.id
           },
           fetchPolicy: "cache-and-network",
           refetchQueries: [
             {
-              query: gqlFetchList(mutationVars.queryName, fields)
+              query: gqlFetchList(mutationVars.queryName, args.fields)
             }
           ]
         };
@@ -117,9 +89,32 @@ const decorateEdit = ({
     branch(
       ({ formData, loading }) => loading || !formData,
       renderComponent(({ LoadingComponent }) =>
-        Loading ? <Loading /> : <LoadingComponent />
+        args.Loading ? <Loading /> : <LoadingComponent />
       )
     )
+  );
+};
+
+const decorateDelete = args => {
+  const mutationVars = processMutationVars({ ...args, ...{ destroy: true } });
+  const mutation = gqlMutate(mutationVars, args.fields);
+  return compose(
+    graphql(mutation, {
+      props: props => ({
+        [`delete${args.resource}`]: params =>
+          props.mutate({
+            mutation: mutation,
+            variables: {
+              input: {
+                id:
+                  (props && props.id) ||
+                  (params && params.id) ||
+                  props.match.params.id
+              }
+            }
+          })
+      })
+    })
   );
 };
 
@@ -145,24 +140,50 @@ export const processFormData = data => {
   });
 };
 
-export const processMutationVars = (
-  inputTypeName,
-  mutationName,
-  queryName,
-  resourceName,
-  update = false,
-  detailQueryName = null
-) => {
+export const processInputTypeName = args => {
+  const { destroy, resource, update } = args;
+  let inputTypeName = `Create${resource}Input`;
+
+  if (destroy) {
+    inputTypeName = `Delete${resource}Input`;
+  }
+
+  if (update) {
+    inputTypeName = `Update${resource}Input`;
+  }
+
+  return inputTypeName;
+};
+
+export const processMutationName = args => {
+  const { destroy, resource, update } = args;
+  let mutationName = `create${resource}`;
+
+  if (destroy) {
+    mutationName = `delete${resource}`;
+  }
+
+  if (update) {
+    mutationName = `update${resource}`;
+  }
+
+  return mutationName;
+};
+
+export const processMutationVars = args => {
+  const {
+    inputTypeName,
+    mutationName,
+    queryName,
+    resource,
+    detailQueryName
+  } = args;
+
   return {
-    detailQueryName: detailQueryName || `get${resourceName}`,
-    inputTypeName:
-      inputTypeName ||
-      (update ? `Update${resourceName}Input` : `Create${resourceName}Input`),
-    mutationName:
-      mutationName ||
-      (update ? `update${resourceName}` : `create${resourceName}`),
-    queryName: queryName || `list${pluralize(resourceName)}`,
-    updateMutationName: mutationName || `update${resourceName}`
+    detailQueryName: detailQueryName || `get${resource}`,
+    inputTypeName: inputTypeName || processInputTypeName(args),
+    mutationName: mutationName || processMutationName(args),
+    queryName: queryName || `list${pluralize(resource)}`
   };
 };
 
@@ -326,4 +347,4 @@ export const toUISchema = (fields, apiSchema) => {
   return uiSchema;
 };
 
-export { decorateCreate, decorateEdit };
+export { decorateCreate, decorateEdit, decorateDelete };
