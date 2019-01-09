@@ -21,15 +21,20 @@ const awsScalars = {
 const decorateCreate = args => {
   const mutationVars = processMutationVars(args);
   const mutation = gqlMutate(mutationVars, args.fields);
+  let refetch = true;
+  if (args.refetch === false) refetch = false;
 
   return compose(
     graphql(mutation, {
       options: {
-        refetchQueries: [
-          {
-            query: gqlFetchList(mutationVars.queryName, args.fields)
-          }
-        ]
+        ...(() =>
+          refetch && {
+            refetchQueries: [
+              {
+                query: gqlFetchList(mutationVars.queryName, args.fields)
+              }
+            ]
+          })()
       },
       props: props => ({
         onSubmit: data =>
