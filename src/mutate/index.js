@@ -87,12 +87,10 @@ const decorateEdit = args => {
       }
     ),
     graphql(mutation, {
-      props: props => {
-        return {
-          onSubmit: data =>
-            props.mutate({ mutation: mutation, variables: { input: data } })
-        };
-      }
+      props: props => ({
+        onSubmit: data =>
+          props.mutate({ mutation: mutation, variables: { input: data } })
+      })
     }),
     withProps(props => processSchemas(props.apiSchema, mutationVars)),
     branch(
