@@ -50,10 +50,8 @@ const decorateCreate = args => {
 };
 
 const decorateEdit = args => {
-  const {
-    fields,
-    params: { queryWithoutId }
-  } = args;
+  const { fields, params } = args;
+  const queryWithoutId = params && params.queryWithoutId;
   const mutationVars = processMutationVars({ ...args, ...{ update: true } });
   const mutation = gqlMutate(mutationVars, args.fields);
 

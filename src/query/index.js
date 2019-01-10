@@ -6,7 +6,7 @@ import _ from "underscore";
 import { gqlFetchDetail, gqlFetchList } from "../common";
 
 const decorateDetail = ({ Loading, resource, fields, params, queryName }) => {
-  const { queryWithoutId } = params;
+  const queryWithoutId = params && params.queryWithoutId;
   const query = queryName || `get${resource}`;
 
   return compose(
