@@ -9,7 +9,7 @@ const decorateDetail = ({ Loading, resource, fields, params, queryName }) => {
   const query = queryName || `get${resource}`;
 
   return compose(
-    graphql(gqlFetchDetail(query, fields), {
+    graphql(gqlFetchDetail(query, fields, params.queryWithoutId), {
       options: props => ({
         variables: {
           ...{ id: (params && params.id) || props.match.params.id }

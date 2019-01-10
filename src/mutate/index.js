@@ -54,36 +54,45 @@ const decorateEdit = args => {
   const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
-    graphql(gqlFetchDetail(mutationVars.detailQueryName, args.fields), {
-      options: props => {
-        return {
-          variables: {
-            id:
-              (props && props.id) ||
-              (args.params && args.params.id) ||
-              props.match.params.id
-          },
-          fetchPolicy: "cache-and-network",
-          refetchQueries: [
-            {
-              query: gqlFetchList(mutationVars.queryName, args.fields)
-            }
-          ]
-        };
-      },
-      props: props => ({
-        formData: processFormData(props.data[mutationVars.detailQueryName]),
-        data: props.data[mutationVars.detailQueryName],
-        loading: props.data.loading,
-        ...(() =>
-          props.data.error ? { apolloInternalError: props.data.error } : {})()
-      })
-    }),
+    graphql(
+      gqlFetchDetail(
+        mutationVars.detailQueryName,
+        args.fields,
+        args.params.queryWithoutId
+      ),
+      {
+        options: props => {
+          return {
+            variables: {
+              id:
+                (props && props.id) ||
+                (args.params && args.params.id) ||
+                props.match.params.id
+            },
+            fetchPolicy: "cache-and-network",
+            refetchQueries: [
+              {
+                query: gqlFetchList(mutationVars.queryName, args.fields)
+              }
+            ]
+          };
+        },
+        props: props => ({
+          formData: processFormData(props.data[mutationVars.detailQueryName]),
+          data: props.data[mutationVars.detailQueryName],
+          loading: props.data.loading,
+          ...(() =>
+            props.data.error ? { apolloInternalError: props.data.error } : {})()
+        })
+      }
+    ),
     graphql(mutation, {
-      props: props => ({
-        onSubmit: data =>
-          props.mutate({ mutation: mutation, variables: { input: data } })
-      })
+      props: props => {
+        return {
+          onSubmit: data =>
+            props.mutate({ mutation: mutation, variables: { input: data } })
+        };
+      }
     }),
     withProps(props => processSchemas(props.apiSchema, mutationVars)),
     branch(
