@@ -11,6 +11,7 @@ import { processFormData, processSchemas } from "../utils/json-schema";
 const decorateCreate = args => {
   const mutationVars = processMutationVars(args);
   const mutation = gqlMutate(mutationVars, args.fields);
+
   let refetch = true;
   if (args.refetch === false) refetch = false;
 
@@ -85,17 +86,7 @@ const decorateEdit = args => {
           props.mutate({ mutation: mutation, variables: { input: data } })
       })
     }),
-    withProps(props => {
-      const { schema, uiSchema } = processSchemas(
-        props.apiSchema,
-        mutationVars
-      );
-
-      return {
-        schema: schema,
-        uiSchema: uiSchema
-      };
-    }),
+    withProps(props => processSchemas(props.apiSchema, mutationVars)),
     withFormHandlers(),
     branch(
       ({ formData, loading }) => loading || !formData,
