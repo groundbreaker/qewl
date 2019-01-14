@@ -1,7 +1,14 @@
 import gql from "graphql-tag";
 
-export const gqlFetchDetail = (queryName, fields) => {
-  return gql`query($id: ID!) {
+export const gqlFetchDetail = (queryName, fields, queryWithoutId) => {
+  if (queryWithoutId) {
+    return gql`query {
+      ${queryName} {
+        ${fields}
+      }
+    }`;
+  }
+  return gql`query($id: ID) {
           ${queryName}(
             id: $id
           ) {

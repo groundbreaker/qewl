@@ -6,10 +6,11 @@ import _ from "underscore";
 import { gqlFetchDetail, gqlFetchList } from "../common";
 
 const decorateDetail = ({ Loading, resource, fields, params, queryName }) => {
+  const queryWithoutId = params && params.queryWithoutId;
   const query = queryName || `get${resource}`;
 
   return compose(
-    graphql(gqlFetchDetail(query, fields), {
+    graphql(gqlFetchDetail(query, fields, queryWithoutId), {
       options: props => ({
         variables: {
           ...{ id: (params && params.id) || props.match.params.id }
