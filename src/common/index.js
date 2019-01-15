@@ -8,7 +8,7 @@ export const gqlFetchDetail = (queryName, fields, queryWithoutId) => {
       }
     }`;
   }
-  return gql`query($id: ID) {
+  return gql`query($id: ID!) {
           ${queryName}(
             id: $id
           ) {

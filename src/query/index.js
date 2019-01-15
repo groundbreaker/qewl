@@ -14,6 +14,7 @@ const decorateDetail = ({ Loading, resource, fields, params, queryName }) => {
     graphql(gqlFetchDetail(query, fields, queryWithoutId), {
       options: props => ({
         variables: {
+          ...params,
           ...{ id: (params && params.id) || props.match.params.id }
         },
         fetchPolicy: "cache-and-network"

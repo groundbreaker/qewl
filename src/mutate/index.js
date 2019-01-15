@@ -17,6 +17,7 @@ import { processFormData, processSchemas } from "../utils/json-schema";
 const decorateCreate = args => {
   const mutationVars = processMutationVars(args);
   const mutation = gqlMutate(mutationVars, args.fields);
+
   let refetch = true;
   if (args.refetch === false) refetch = false;
 
@@ -108,7 +109,9 @@ const decorateEdit = args => {
         uiSchema: uiSchema
       };
     }),
-    setDisplayName(`Qewl(formHandlers)`),
+    setDisplayName("Qewl(SchemaProcessing)"),
+    withProps(props => processSchemas(props.apiSchema, mutationVars)),
+    setDisplayName("Qewl(withFormHandlers)"),
     withFormHandlers(),
     setDisplayName("Qewl(LoadingComponent)"),
     branch(
