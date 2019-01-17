@@ -1,5 +1,5 @@
 import gql from "graphql-tag";
-import { createFactory, createElement } from "react";
+import { createFactory } from "react";
 
 /**
  * Converts:
