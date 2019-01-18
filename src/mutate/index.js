@@ -4,11 +4,11 @@ import { graphql } from "react-apollo";
 import { compose, branch, renderComponent, withProps } from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
-import { gqlFetchDetail, gqlFetchList } from "../common";
+import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
 import withFormHandlers from "../withFormHandlers";
 import { processFormData, processSchemas } from "../utils/json-schema";
 
-const decorateCreate = args => {
+const decorateCreateBase = args => {
   const mutationVars = processMutationVars(args);
   const mutation = gqlMutate(mutationVars, args.fields);
 
@@ -45,7 +45,7 @@ const decorateCreate = args => {
   );
 };
 
-const decorateEdit = args => {
+const decorateEditBase = args => {
   const { fields, params } = args;
   const queryWithoutId = params && params.queryWithoutId;
   const mutationVars = processMutationVars({ ...args, ...{ update: true } });
@@ -97,7 +97,7 @@ const decorateEdit = args => {
   );
 };
 
-const decorateDelete = args => {
+const decorateDeleteBase = args => {
   const mutationVars = processMutationVars({ ...args, ...{ destroy: true } });
   const mutation = gqlMutate(mutationVars, args.fields);
   return compose(
@@ -174,5 +174,9 @@ export const processMutationVars = args => {
     queryName: queryName || `list${pluralize(resource)}`
   };
 };
+
+const decorateCreate = mapperWrapper(decorateCreateBase);
+const decorateEdit = mapperWrapper(decorateEditBase);
+const decorateDelete = mapperWrapper(decorateDeleteBase);
 
 export { decorateCreate, decorateEdit, decorateDelete };

@@ -1,4 +1,27 @@
 import gql from "graphql-tag";
+import { createFactory } from "react";
+
+/**
+ * Converts:
+ * ```js
+  HigherOrderComponent(
+    config: Object
+  ): HigherOrderComponent
+ ```
+ * Into:
+ * ```javascript
+  HigherOrderComponent(
+  config: (ownerProps) => Object | Object
+  ): HigherOrderComponent
+    ```
+ * @param {HigherOrderComponent} QewlComponent
+ */
+export const mapperWrapper = QewlComponent => input => BaseComponent => props =>
+  createFactory(
+    QewlComponent({ ...(typeof input === "function" ? input(props) : input) })(
+      BaseComponent
+    )
+  )(props);
 
 export const gqlFetchDetail = (queryName, fields, queryWithoutId) => {
   if (queryWithoutId) {

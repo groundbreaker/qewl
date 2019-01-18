@@ -1,11 +1,12 @@
 import React from "react";
 import { graphql } from "react-apollo";
-import { compose, branch, renderComponent, withProps } from "recompose";
+import { compose, branch, renderComponent } from "recompose";
 import pluralize from "pluralize";
 import _ from "underscore";
-import { gqlFetchDetail, gqlFetchList } from "../common";
+import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
 
-const decorateDetail = ({ Loading, resource, fields, params, queryName }) => {
+const decorateDetailBase = args => {
+  const { Loading, resource, fields, params, queryName } = args;
   const queryWithoutId = params && params.queryWithoutId;
   const query = queryName || `get${resource}`;
 
@@ -32,7 +33,8 @@ const decorateDetail = ({ Loading, resource, fields, params, queryName }) => {
   );
 };
 
-const decorateList = ({ Loading, resource, fields, params, queryName }) => {
+const decorateListBase = args => {
+  const { Loading, resource, fields, params, queryName } = args;
   const query = queryName || `list${pluralize(resource)}`;
 
   return compose(
@@ -68,4 +70,6 @@ const decorateList = ({ Loading, resource, fields, params, queryName }) => {
   );
 };
 
+const decorateList = mapperWrapper(decorateListBase);
+const decorateDetail = mapperWrapper(decorateDetailBase);
 export { decorateDetail, decorateList };
