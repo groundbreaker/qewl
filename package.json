@@ -14,6 +14,7 @@
   "scripts": {
     "build": "webpack-cli --mode=production",
     "dev": "yarn build -w",
+    "prepublish": "yarn build",
     "test": "jest --env=jsdom"
   },
   "dependencies": {
