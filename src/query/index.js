@@ -1,6 +1,6 @@
 import React from "react";
 import { graphql } from "react-apollo";
-import { compose, branch, renderComponent } from "recompose";
+import { compose, branch, renderComponent, setDisplayName } from "recompose";
 import pluralize from "pluralize";
 import _ from "underscore";
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
