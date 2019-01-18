@@ -11,6 +11,7 @@ const decorateDetailBase = args => {
   const query = queryName || `get${resource}`;
 
   return compose(
+    setDisplayName(`QewlDetail(${resource})`),
     graphql(gqlFetchDetail(query, fields, queryWithoutId), {
       options: props => ({
         variables: {
@@ -20,10 +21,12 @@ const decorateDetailBase = args => {
         fetchPolicy: "cache-and-network"
       }),
       props: props => ({
+        ...(() => props.data.error && console.log("APOLLO ERROR", props))(),
         data: props.data[query],
         loading: props.data.loading
       })
     }),
+    setDisplayName("Qewl(LoadingComponent)"),
     branch(
       ({ loading }) => loading,
       renderComponent(({ LoadingComponent }) =>
@@ -38,6 +41,7 @@ const decorateListBase = args => {
   const query = queryName || `list${pluralize(resource)}`;
 
   return compose(
+    setDisplayName(`QewlList(${resource})`),
     graphql(gqlFetchList(query, fields, `${resource}FilterInput`), {
       options: {
         fetchPolicy: "network-only",
@@ -61,6 +65,7 @@ const decorateListBase = args => {
         };
       }
     }),
+    setDisplayName("Qewl(LoadingComponent)"),
     branch(
       ({ loading }) => loading,
       renderComponent(({ LoadingComponent }) =>

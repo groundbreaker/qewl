@@ -1,7 +1,13 @@
 import React from "react";
 import gql from "graphql-tag";
 import { graphql } from "react-apollo";
-import { compose, branch, renderComponent, withProps } from "recompose";
+import {
+  compose,
+  branch,
+  renderComponent,
+  withProps,
+  setDisplayName
+} from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
@@ -16,6 +22,7 @@ const decorateCreateBase = args => {
   if (args.refetch === false) refetch = false;
 
   return compose(
+    setDisplayName(`QewlCreate(${args.resource})`),
     graphql(mutation, {
       options: {
         ...(() =>
@@ -35,12 +42,14 @@ const decorateCreateBase = args => {
           })
       })
     }),
+    setDisplayName("Qewl(LoadingComponent)"),
     branch(
       ({ loading }) => loading,
       renderComponent(({ LoadingComponent }) =>
         args.Loading ? <Loading /> : <LoadingComponent />
       )
     ),
+    setDisplayName("Qewl(SchemaProcessing)"),
     withProps(props => processSchemas(props.apiSchema, mutationVars))
   );
 };
@@ -52,6 +61,7 @@ const decorateEditBase = args => {
   const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
+    setDisplayName(`QewlEditFetch(${args.resource})`),
     graphql(
       gqlFetchDetail(mutationVars.detailQueryName, fields, queryWithoutId),
       {
@@ -80,14 +90,30 @@ const decorateEditBase = args => {
         })
       }
     ),
+    setDisplayName(`QewlEditMutate(${args.resource})`),
     graphql(mutation, {
       props: props => ({
         onSubmit: data =>
           props.mutate({ mutation: mutation, variables: { input: data } })
       })
     }),
+    setDisplayName("Qewl(SchemaProcessing)"),
+    withProps(props => {
+      const { schema, uiSchema } = processSchemas(
+        props.apiSchema,
+        mutationVars
+      );
+
+      return {
+        schema: schema,
+        uiSchema: uiSchema
+      };
+    }),
+    setDisplayName("Qewl(SchemaProcessing)"),
     withProps(props => processSchemas(props.apiSchema, mutationVars)),
+    setDisplayName("Qewl(withFormHandlers)"),
     withFormHandlers(),
+    setDisplayName("Qewl(LoadingComponent)"),
     branch(
       ({ formData, loading }) => loading || !formData,
       renderComponent(({ LoadingComponent }) =>
@@ -101,6 +127,7 @@ const decorateDeleteBase = args => {
   const mutationVars = processMutationVars({ ...args, ...{ destroy: true } });
   const mutation = gqlMutate(mutationVars, args.fields);
   return compose(
+    setDisplayName(`QewlDeleteMutate(${args.resource})`),
     graphql(mutation, {
       props: props => ({
         [`delete${args.resource}`]: params =>
