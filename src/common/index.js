@@ -16,12 +16,28 @@ import { createFactory } from "react";
     ```
  * @param {HigherOrderComponent} QewlComponent
  */
-export const mapperWrapper = QewlComponent => input => BaseComponent => props =>
-  createFactory(
-    QewlComponent({ ...(typeof input === "function" ? input(props) : input) })(
-      BaseComponent
-    )
-  )(props);
+export const mapperWrapper = QewlComponent => config => BaseComponent => {
+  // we need to keep a reference to this in closure so we can feed it changing
+  // props without changing the reference to the function.
+  let factory;
+  let input = config;
+
+  const WrappedComponent = props => {
+    if (typeof input === "function") input = input(props);
+
+    // This will setup qewl from props for the initial mounting (because factory
+    // will be undefined), but after that, it will reuse that same qewl
+    // component and pass down the props accordingly.
+    //
+    // If we didn't do that, and changed how qewl is configured, it would
+    // require creating a new factory, which would cause qewl to unmount/remount
+    // (and re-render for the entire tree of children).
+    factory = factory || createFactory(QewlComponent(input)(BaseComponent));
+    return factory(props);
+  };
+
+  return WrappedComponent;
+};
 
 export const gqlFetchDetail = (queryName, fields, queryWithoutId) => {
   if (queryWithoutId) {
