@@ -1,6 +1,6 @@
 import gql from "graphql-tag";
 import { createFactory } from "react";
-
+import _ from "underscore";
 /**
  * Converts:
  * ```js
@@ -20,10 +20,10 @@ export const mapperWrapper = QewlComponent => config => BaseComponent => {
   // we need to keep a reference to this in closure so we can feed it changing
   // props without changing the reference to the function.
   let factory;
-  let input = config;
+  let lastConfig;
 
   const WrappedComponent = props => {
-    if (typeof input === "function") input = input(props);
+    const qewlConfig = typeof config === "function" ? config(props) : config;
 
     // This will setup qewl from props for the initial mounting (because factory
     // will be undefined), but after that, it will reuse that same qewl
@@ -32,7 +32,13 @@ export const mapperWrapper = QewlComponent => config => BaseComponent => {
     // If we didn't do that, and changed how qewl is configured, it would
     // require creating a new factory, which would cause qewl to unmount/remount
     // (and re-render for the entire tree of children).
-    factory = factory || createFactory(QewlComponent(input)(BaseComponent));
+    factory =
+      _.isEqual(lastConfig, qewlConfig) && factory
+        ? factory
+        : createFactory(QewlComponent(qewlConfig)(BaseComponent));
+
+    lastConfig = qewlConfig;
+
     return factory(props);
   };
 
