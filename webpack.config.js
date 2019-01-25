@@ -22,6 +22,9 @@ module.exports = {
       }
     ]
   },
+  node: {
+    net: "empty"
+  },
   plugins: [new UglifyJsPlugin()],
   externals: ["react"]
 };
