@@ -144,18 +144,36 @@ const decorateDeleteBase = args => {
 };
 
 const createOnSubmitHandler = (props, schema, mutation) => (data, validate) => {
-  let validData = data;
+  const boundMutate = validData =>
+    props.mutate({ mutation: mutation, variables: { input: validData } });
+
   if (validate) {
-    const joiSchema = convertToJoi(schema);
-    console.log("JOI", props, schema, data, joiSchema);
-    joi.validate(data, joiSchema, (err, value) => {
-      if (err) {
-        console.log("Form validation error:", err);
-        return err;
-      } else validData = value;
+    return new Promise((resolve, reject) => {
+      joi
+        .validate(data, validate.schmea || convertToJoi(schema), {
+          abortEarly: false
+        })
+        .then(async values => {
+          try {
+            const result = await boundMutate(values);
+            resolve(result);
+          } catch (err) {
+            reject(err);
+          }
+        })
+        .catch(err => {
+          reject(err);
+        });
     });
   }
-  return props.mutate({ mutation: mutation, variables: { input: validData } });
+  return new Promise(async (resolve, reject) => {
+    try {
+      const result = await boundMutate(data);
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    }
+  });
 };
 
 export const gqlMutate = (mutationVars, fields) => {

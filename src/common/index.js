@@ -63,7 +63,6 @@ export const gqlFetchDetail = (queryName, fields, queryWithoutId) => {
 };
 
 export const gqlFetchList = (queryName, fields, filter = null) => {
-  console.log("GOT HERE", queryName, fields, filter);
   if (filter) {
     return gql`query($limit: Int, $nextToken: String, $filter: ${filter}) {
           ${queryName} (
