@@ -67,11 +67,17 @@ export const processProperties = (apiSchema, fields) => {
     }
 
     if (field.type.ofType) {
-      const {
-        type: {
-          ofType: { kind, name, ofType }
-        }
+      let {
+        type: { kind, name, ofType }
       } = field;
+
+      const validTypes = { LIST: 1, INPUT_OBJECT: 1, SCALAR: 1, ENUM: 1 };
+
+      if (!(kind in validInputTypes)) {
+        kind = ofType.kind;
+        name = ofType.name;
+        ofType = ofType.ofType;
+      }
 
       if (kind === "LIST") {
         properties[field.name] = {

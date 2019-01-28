@@ -42,7 +42,7 @@ const decorateCreateBase = args => {
           mutationVars
         );
         return {
-          onSubmit: createOnSubmitHandler(props, schema),
+          onSubmit: createOnSubmitHandler(props, schema, mutation),
           schema,
           uiSchema
         };
@@ -101,7 +101,7 @@ const decorateEditBase = args => {
           mutationVars
         );
         return {
-          onSubmit: createOnSubmitHandler(props, schema),
+          onSubmit: createOnSubmitHandler(props, schema, mutation),
           schema,
           uiSchema
         };
@@ -143,10 +143,12 @@ const decorateDeleteBase = args => {
   );
 };
 
-const createOnSubmitHandler = (props, schema) => (data, validate) => {
+const createOnSubmitHandler = (props, schema, mutation) => (data, validate) => {
   let validData = data;
   if (validate) {
-    joi.validate(data, convertToJoi(schema), (err, value) => {
+    const joiSchema = convertToJoi(schema);
+    console.log("JOI", props, schema, data, joiSchema);
+    joi.validate(data, joiSchema, (err, value) => {
       if (err) {
         console.log("Form validation error:", err);
         return err;
