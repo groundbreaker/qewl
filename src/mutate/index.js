@@ -13,6 +13,8 @@ import pluralize from "pluralize";
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
 import withFormHandlers from "../withFormHandlers";
 import { processFormData, processSchemas } from "../utils/json-schema";
+import { schema as convertToJoi } from "enjoi";
+import joi from "joi";
 
 const decorateCreateBase = args => {
   const mutationVars = processMutationVars(args);
@@ -34,13 +36,17 @@ const decorateCreateBase = args => {
             ]
           })()
       },
-      props: props => ({
-        onSubmit: data =>
-          props.mutate({
-            mutation: mutation,
-            variables: { input: data }
-          })
-      })
+      props: props => {
+        const { schema, uiSchema } = processSchemas(
+          props.ownProps.apiSchema,
+          mutationVars
+        );
+        return {
+          onSubmit: createOnSubmitHandler(props, schema, mutation),
+          schema,
+          uiSchema
+        };
+      }
     }),
     setDisplayName("Qewl(LoadingComponent)"),
     branch(
@@ -48,9 +54,7 @@ const decorateCreateBase = args => {
       renderComponent(({ LoadingComponent }) =>
         args.Loading ? <Loading /> : <LoadingComponent />
       )
-    ),
-    setDisplayName("Qewl(SchemaProcessing)"),
-    withProps(props => processSchemas(props.apiSchema, mutationVars))
+    )
   );
 };
 
@@ -85,32 +89,24 @@ const decorateEditBase = args => {
           formData: processFormData(props.data[mutationVars.detailQueryName]),
           data: props.data[mutationVars.detailQueryName],
           loading: props.data.loading,
-          ...(() =>
-            props.data.error ? { apolloInternalError: props.data.error } : {})()
+          apolloInternalError: props.data.error
         })
       }
     ),
     setDisplayName(`QewlEditMutate(${args.resource})`),
     graphql(mutation, {
-      props: props => ({
-        onSubmit: data =>
-          props.mutate({ mutation: mutation, variables: { input: data } })
-      })
+      props: props => {
+        const { schema, uiSchema } = processSchemas(
+          props.ownProps.apiSchema,
+          mutationVars
+        );
+        return {
+          onSubmit: createOnSubmitHandler(props, schema, mutation),
+          schema,
+          uiSchema
+        };
+      }
     }),
-    setDisplayName("Qewl(SchemaProcessing)"),
-    withProps(props => {
-      const { schema, uiSchema } = processSchemas(
-        props.apiSchema,
-        mutationVars
-      );
-
-      return {
-        schema: schema,
-        uiSchema: uiSchema
-      };
-    }),
-    setDisplayName("Qewl(SchemaProcessing)"),
-    withProps(props => processSchemas(props.apiSchema, mutationVars)),
     setDisplayName("Qewl(withFormHandlers)"),
     withFormHandlers(),
     setDisplayName("Qewl(LoadingComponent)"),
@@ -145,6 +141,39 @@ const decorateDeleteBase = args => {
       })
     })
   );
+};
+
+const createOnSubmitHandler = (props, schema, mutation) => (data, validate) => {
+  const boundMutate = validData =>
+    props.mutate({ mutation: mutation, variables: { input: validData } });
+
+  if (validate) {
+    return new Promise((resolve, reject) => {
+      joi
+        .validate(data, validate.schmea || convertToJoi(schema), {
+          abortEarly: false
+        })
+        .then(async values => {
+          try {
+            const result = await boundMutate(values);
+            resolve(result);
+          } catch (err) {
+            reject(err);
+          }
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  }
+  return new Promise(async (resolve, reject) => {
+    try {
+      const result = await boundMutate(data);
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    }
+  });
 };
 
 export const gqlMutate = (mutationVars, fields) => {

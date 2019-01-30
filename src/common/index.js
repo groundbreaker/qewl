@@ -79,7 +79,6 @@ export const gqlFetchList = (queryName, fields, filter = null) => {
 
   return gql`query($limit: Int, $nextToken: String) {
           ${queryName} (
-            filter: $filter,
             limit: $limit,
             nextToken: $nextToken
           ) {
