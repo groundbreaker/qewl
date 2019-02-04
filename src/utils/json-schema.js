@@ -39,7 +39,7 @@ export const processProperties = (apiSchema, fields) => {
         type: { kind, name, ofType }
       } = field;
 
-      if (kind === "LIST") {
+      if (kind === "LIST" && ofType.kind !== "ENUM") {
         properties[field.name] = {
           type: "array",
           title: processTitle(field.name),
@@ -79,7 +79,7 @@ export const processProperties = (apiSchema, fields) => {
         ofType = ofType.ofType;
       }
 
-      if (kind === "LIST") {
+      if (kind === "LIST" && ofType.kind !== "ENUM") {
         properties[field.name] = {
           type: "array",
           title: processTitle(field.name),
@@ -148,9 +148,17 @@ export const processScalar = (fieldName, typeName) => ({
 
 export const processSchemas = (apiSchema, mutationVars) => {
   const fields = pluckFields(apiSchema, mutationVars.inputTypeName);
+
+  if (fields) {
+    return {
+      schema: toJSONSchema(fields, apiSchema),
+      uiSchema: toUISchema(fields, apiSchema)
+    };
+  }
+
   return {
-    schema: toJSONSchema(fields, apiSchema),
-    uiSchema: toUISchema(fields, apiSchema)
+    schema: null,
+    uiSchema: null
   };
 };
 
