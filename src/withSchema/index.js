@@ -1,9 +1,17 @@
 import _ from "underscore";
 import { introspectionQuery, parse } from "graphql";
 import { graphql } from "react-apollo";
-import { compose } from "recompose";
+import { compose, withProps } from "recompose";
 
-const withSchema = () => {
+const withSchema = fullIntrospectionQuery => {
+  if (fullIntrospectionQuery) {
+    return compose(
+      withProps({
+        apiSchema: generateApiSchema(fullIntrospectionQuery.__schema)
+      })
+    );
+  }
+
   return compose(
     graphql(
       parse(introspectionQuery, {

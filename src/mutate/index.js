@@ -1,13 +1,7 @@
 import React from "react";
 import gql from "graphql-tag";
 import { graphql } from "react-apollo";
-import {
-  compose,
-  branch,
-  renderComponent,
-  withProps,
-  setDisplayName
-} from "recompose";
+import { compose, branch, renderComponent, setDisplayName } from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
