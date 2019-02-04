@@ -59,7 +59,7 @@ const decorateCreateBase = args => {
 };
 
 const decorateEditBase = args => {
-  const { fields, params } = args;
+  const { dataKey, fields, params } = args;
   const queryWithoutId = params && params.queryWithoutId;
   const mutationVars = processMutationVars({ ...args, ...{ update: true } });
   const mutation = gqlMutate(mutationVars, args.fields);
@@ -87,7 +87,7 @@ const decorateEditBase = args => {
         },
         props: props => ({
           formData: processFormData(props.data[mutationVars.detailQueryName]),
-          data: props.data[mutationVars.detailQueryName],
+          [dataKey || `data`]: props.data[mutationVars.detailQueryName],
           loading: props.data.loading,
           apolloInternalError: props.data.error
         })

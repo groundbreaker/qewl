@@ -6,7 +6,7 @@ import _ from "underscore";
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
 
 const decorateDetailBase = args => {
-  const { Loading, resource, fields, params, queryName } = args;
+  const { dataKey, fields, Loading, params, queryName, resource } = args;
   const queryWithoutId = params && params.queryWithoutId;
   const query = queryName || `get${resource}`;
 
@@ -22,7 +22,7 @@ const decorateDetailBase = args => {
       }),
       props: props => ({
         ...(() => props.data.error && console.log("APOLLO ERROR", props))(),
-        data: props.data[query],
+        [dataKey || `data`]: props.data[query],
         loading: props.data.loading
       })
     }),
@@ -37,7 +37,7 @@ const decorateDetailBase = args => {
 };
 
 const decorateListBase = args => {
-  const { Loading, resource, fields, params, queryName } = args;
+  const { dataKey, fields, Loading, params, queryName, resource } = args;
   const query = queryName || `list${pluralize(resource)}`;
 
   return compose(
@@ -60,7 +60,8 @@ const decorateListBase = args => {
               })
             });
           },
-          data: (props.data[query] && props.data[query].items) || [],
+          [dataKey || `data`]:
+            (props.data[query] && props.data[query].items) || [],
           loading: props.data.loading
         };
       }
