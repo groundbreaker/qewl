@@ -1,6 +1,5 @@
-import React from "react";
 import { graphql } from "react-apollo";
-import { compose, branch, renderComponent, setDisplayName } from "recompose";
+import { compose, setDisplayName } from "recompose";
 import pluralize from "pluralize";
 import _ from "underscore";
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
@@ -25,14 +24,7 @@ const decorateDetailBase = args => {
         [dataKey || `data`]: props.data[query],
         loading: props.data.loading
       })
-    }),
-    setDisplayName("Qewl(LoadingComponent)"),
-    branch(
-      ({ loading }) => loading,
-      renderComponent(({ LoadingComponent }) =>
-        Loading ? <Loading /> : <LoadingComponent />
-      )
-    )
+    })
   );
 };
 
@@ -65,14 +57,7 @@ const decorateListBase = args => {
           loading: props.data.loading
         };
       }
-    }),
-    setDisplayName("Qewl(LoadingComponent)"),
-    branch(
-      ({ loading }) => loading,
-      renderComponent(({ LoadingComponent }) =>
-        Loading ? <Loading /> : <LoadingComponent />
-      )
-    )
+    })
   );
 };
 
