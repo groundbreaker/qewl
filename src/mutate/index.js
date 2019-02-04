@@ -143,14 +143,17 @@ const decorateDeleteBase = args => {
   );
 };
 
-const createOnSubmitHandler = (props, schema, mutation) => (data, validate) => {
+const createOnSubmitHandler = (props, schema, mutation) => (
+  data,
+  options = {}
+) => {
   const boundMutate = validData =>
     props.mutate({ mutation: mutation, variables: { input: validData } });
 
-  if (validate) {
+  if (options.validateDefault || options.validateSchema) {
     return new Promise((resolve, reject) => {
       joi
-        .validate(data, validate.schmea || convertToJoi(schema), {
+        .validate(data, options.validateSchema || convertToJoi(schema), {
           abortEarly: false
         })
         .then(async values => {

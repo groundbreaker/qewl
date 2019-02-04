@@ -19,7 +19,7 @@ export const processFormData = data => {
     }
 
     if (_.isObject(v)) {
-      return _.omit(v, "__typename");
+      return processFormData(v);
     }
 
     return v;
