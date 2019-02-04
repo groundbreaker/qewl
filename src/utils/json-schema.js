@@ -155,6 +155,11 @@ export const processSchemas = (apiSchema, mutationVars) => {
       uiSchema: toUISchema(fields, apiSchema)
     };
   }
+
+  return {
+    schema: null,
+    uiSchema: null
+  };
 };
 
 export const processTitle = title => titleize(humanize(title));
