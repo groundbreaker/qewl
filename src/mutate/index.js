@@ -1,7 +1,6 @@
-import React from "react";
 import gql from "graphql-tag";
 import { graphql } from "react-apollo";
-import { compose, branch, renderComponent, setDisplayName } from "recompose";
+import { compose, setDisplayName } from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
@@ -41,14 +40,7 @@ const decorateCreateBase = args => {
           uiSchema
         };
       }
-    }),
-    setDisplayName("Qewl(LoadingComponent)"),
-    branch(
-      ({ loading }) => loading,
-      renderComponent(({ LoadingComponent }) =>
-        args.Loading ? <Loading /> : <LoadingComponent />
-      )
-    )
+    })
   );
 };
 
@@ -102,14 +94,7 @@ const decorateEditBase = args => {
       }
     }),
     setDisplayName("Qewl(withFormHandlers)"),
-    withFormHandlers(),
-    setDisplayName("Qewl(LoadingComponent)"),
-    branch(
-      ({ formData, loading }) => loading || !formData,
-      renderComponent(({ LoadingComponent }) =>
-        args.Loading ? <Loading /> : <LoadingComponent />
-      )
-    )
+    withFormHandlers()
   );
 };
 
