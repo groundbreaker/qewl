@@ -5,7 +5,7 @@ email:
   on_failure: change
   on_success: never
 
-before_deploy: tree
+before_deploy: ls -a
 
 deploy:
   provider: npm
