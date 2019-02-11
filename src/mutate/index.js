@@ -129,12 +129,20 @@ const createOnSubmitHandler = (props, schema, mutation) => (
   const boundMutate = validData =>
     props.mutate({ mutation: mutation, variables: { input: validData } });
 
+  const customTypes = {
+    types: { id: joi.string() }
+  };
+
   if (options.validateDefault || options.validateSchema) {
     return new Promise((resolve, reject) => {
       joi
-        .validate(data, options.validateSchema || convertToJoi(schema), {
-          abortEarly: false
-        })
+        .validate(
+          data,
+          options.validateSchema || convertToJoi(schema, customTypes),
+          {
+            abortEarly: false
+          }
+        )
         .then(async values => {
           try {
             const result = await boundMutate(values);
