@@ -24,7 +24,6 @@
     "joi": "^14.3.1",
     "pluralize": "^7.0.0",
     "react-apollo": "^2.2.4",
-    "react-dom": "^16.6.0",
     "recompose": "^0.30.0",
     "underscore": "^1.9.1",
     "underscore.string": "^3.3.5"
@@ -51,6 +50,7 @@
     "react-test-renderer": "^16.6.0",
     "uglifyjs-webpack-plugin": "^1.2.7",
     "webpack": "4.19.1",
+    "webpack-bundle-analyzer": "^3.0.4",
     "webpack-cli": "^3.1.2"
   },
   "resolutions": {
