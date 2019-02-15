@@ -45,7 +45,7 @@ const decorateCreateBase = args => {
 };
 
 const decorateEditBase = args => {
-  const { dataKey, fields, params } = args;
+  const { dataKey, fields, params, fetchFields } = args;
   const queryWithoutId = params && params.queryWithoutId;
   const mutationVars = processMutationVars({ ...args, ...{ update: true } });
   const mutation = gqlMutate(mutationVars, args.fields);
@@ -53,7 +53,11 @@ const decorateEditBase = args => {
   return compose(
     setDisplayName(`QewlEditFetch(${args.resource})`),
     graphql(
-      gqlFetchDetail(mutationVars.detailQueryName, fields, queryWithoutId),
+      gqlFetchDetail(
+        mutationVars.detailQueryName,
+        fetchFields || fields,
+        queryWithoutId
+      ),
       {
         options: props => {
           return {
@@ -66,7 +70,10 @@ const decorateEditBase = args => {
             fetchPolicy: "cache-and-network",
             refetchQueries: [
               {
-                query: gqlFetchList(mutationVars.queryName, args.fields)
+                query: gqlFetchList(
+                  mutationVars.queryName,
+                  fetchFields || fields
+                )
               }
             ]
           };

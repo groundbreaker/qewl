@@ -20,7 +20,7 @@ const decorateDetailBase = args => {
         fetchPolicy: "cache-and-network"
       }),
       props: props => ({
-        ...(() => props.data.error && console.log("APOLLO ERROR", props))(),
+        apolloInternalError: props.data.error,
         [dataKey || `data`]: props.data[query],
         loading: props.data.loading
       })
@@ -44,6 +44,7 @@ const decorateListBase = args => {
           data: { fetchMore }
         } = props;
         return {
+          apolloInternalError: props.data.error,
           filterQuery: params => {
             fetchMore({
               variables: params,
