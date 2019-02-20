@@ -1,164 +1,125 @@
 import _ from "underscore";
 import titleize from "underscore.string/titleize";
 import humanize from "underscore.string/humanize";
+import omit from "omit-deep";
 
-const awsScalars = {
+import { mb } from "./vendor/mb";
+
+const scalars = {
   awsemail: "string",
   awsdate: "string",
   awsdatetime: "string",
   awsjson: "string",
   awsipaddress: "string",
   awsurl: "string",
-  awsphone: "string"
+  awsphone: "string",
+  string: "string"
 };
 
-export const processFormData = data => {
-  return _.mapObject(_.omit(data, "__typename"), v => {
-    if (_.isArray(v)) {
-      return v.map(processFormData);
+const generateField = (value, key) => {
+  if (!value.properties) {
+    if (value.items) {
+      return [];
     }
 
-    if (_.isObject(v)) {
-      return processFormData(v);
-    }
+    return "";
+  }
 
-    return v;
-  });
+  return _.mapObject(value.properties, (v, k) => generateField(v, k));
 };
 
-export const processProperties = (apiSchema, fields) => {
-  let properties = {};
+export const removeNullKeys = formData => {
+  let formDataCopy = JSON.parse(JSON.stringify(formData));
 
-  fields.forEach(field => {
-    if (field.name === "id") {
-      return;
-    }
-
-    if (!field.type.ofType) {
-      const {
-        type: { kind, name, ofType }
-      } = field;
-
-      if (kind === "LIST" && ofType.kind !== "ENUM") {
-        properties[field.name] = {
-          type: "array",
-          title: processTitle(field.name),
-          items: toJSONSchema(pluckFields(apiSchema, ofType.name), apiSchema)
-        };
-      }
-
-      if (kind === "SCALAR") {
-        properties[field.name] = processScalar(field.name, name.toLowerCase());
-      }
-
-      if (kind === "ENUM") {
-        properties[field.name] = processEnum(
-          field.name,
-          pluckEnumValues(apiSchema, name)
-        );
-      }
-
-      if (kind === "INPUT_OBJECT") {
-        properties[field.name] = toJSONSchema(
-          pluckFields(apiSchema, name),
-          apiSchema
-        );
-      }
-    }
-
-    if (field.type.ofType) {
-      let {
-        type: { kind, name, ofType }
-      } = field;
-
-      const validTypes = { LIST: 1, INPUT_OBJECT: 1, SCALAR: 1, ENUM: 1 };
-
-      if (!(kind in validTypes)) {
-        kind = ofType.kind;
-        name = ofType.name;
-        ofType = ofType.ofType;
-      }
-
-      if (kind === "LIST" && ofType.kind !== "ENUM") {
-        properties[field.name] = {
-          type: "array",
-          title: processTitle(field.name),
-          items: toJSONSchema(pluckFields(apiSchema, ofType.name), apiSchema)
-        };
-      }
-
-      if (kind === "INPUT_OBJECT") {
-        properties[field.name] = toJSONSchema(
-          pluckFields(apiSchema, name),
-          apiSchema
-        );
-      }
-
-      if (kind === "SCALAR") {
-        properties[field.name] = processScalar(field.name, name.toLowerCase());
-      }
-
-      if (kind === "ENUM") {
-        properties[field.name] = processEnum(
-          field.name,
-          pluckEnumValues(apiSchema, name)
-        );
-      }
-    }
+  Object.keys(formDataCopy).forEach(key => {
+    if (formDataCopy[key] && typeof formDataCopy[key] === "object") {
+      formDataCopy[key] = removeNullKeys(formDataCopy[key]);
+      if (_.isEmpty(formDataCopy[key])) delete formDataCopy[key];
+    } else if (formDataCopy[key] === undefined || formDataCopy[key] === null)
+      delete formDataCopy[key];
+    else formDataCopy[key] = formDataCopy[key];
   });
 
-  return properties;
+  return formDataCopy;
 };
 
-export const pluckEnumValues = (apiSchema, name) =>
-  _.pluck(
-    _.findWhere(apiSchema.enums, {
-      name: name
-    }).enumValues,
-    "name"
+export const processFormData = ({ schema, data }) => {
+  const processedFormSchema = _.mapObject(schema.properties, (v, k) =>
+    generateField(v, k)
   );
+  let payload = processedFormSchema;
 
-export const pluckFields = (apiSchema, inputName) =>
-  _.findWhere(apiSchema.inputTypes, {
-    name: inputName
-  }).inputFields;
-
-export const processEnum = (fieldName, values) => ({
-  type: "string",
-  title: processTitle(fieldName),
-  enum: values,
-  enumNames: values.map(value => titleize(humanize(value)))
-});
-
-export const processRequired = fields => {
-  let fieldsCopy = fields.slice();
-  fieldsCopy = fields.map(field => {
-    if (field.type.kind === "NON_NULL") {
-      return field.name;
-    }
-    return null;
-  });
-  return _.filter(fieldsCopy, field => field !== null);
-};
-
-export const processScalar = (fieldName, typeName) => ({
-  type: awsScalars[typeName] || typeName,
-  title: processTitle(fieldName)
-});
-
-export const processSchemas = (apiSchema, mutationVars) => {
-  const fields = pluckFields(apiSchema, mutationVars.inputTypeName);
-
-  if (fields) {
-    return {
-      schema: toJSONSchema(fields, apiSchema),
-      uiSchema: toUISchema(fields, apiSchema)
+  if (data) {
+    payload = {
+      ...processedFormSchema,
+      ...removeNullKeys(data)
     };
   }
 
+  return omit(payload, ["__typename"]);
+};
+
+const fieldTypes = ({ apiSchema, inputField, field }) => {
+  const { enums, inputTypes } = apiSchema;
+
+  const scalarOptions = {
+    ENUM: {
+      type: "string",
+      enums: _.pluck(
+        mb(["enumValues"])(_.findWhere(enums, { name: field.name })),
+        "name"
+      )
+    },
+    INPUT_OBJECT:
+      mb(["name"])(_.findWhere(inputTypes, { name: field.name })) &&
+      processInput({
+        apiSchema,
+        input: mb(["name"])(_.findWhere(inputTypes, { name: field.name }))
+      }),
+    LIST: {
+      type: "array",
+      items:
+        mb(["ofType"])(field) &&
+        fieldTypes({ apiSchema, field: mb(["ofType"])(field), inputField })
+    },
+    SCALAR: {
+      type: scalars[field.name && field.name.toLowerCase()]
+    }
+  };
+
   return {
-    schema: null,
-    uiSchema: null
+    ...scalarOptions[field.kind],
+    ...{ title: processTitle(inputField.name) }
+  };
+};
+
+const processInput = ({ apiSchema, input }) => {
+  const { inputTypes } = apiSchema;
+  const schema = { properties: {}, required: [], type: "object" };
+  const inputType = _.findWhere(inputTypes, { name: input });
+
+  inputType.inputFields.map(inputField => {
+    let field = mb(["type"])(inputField);
+
+    if (inputField.type.kind === "NON_NULL") {
+      schema.required.push(inputField.name);
+      field = mb(["type", "ofType"])(inputField);
+    }
+
+    schema.properties[inputField.name] = fieldTypes({
+      apiSchema,
+      inputField,
+      field
+    });
+  });
+
+  return schema;
+};
+
+export const processSchemas = (apiSchema, mutationVars) => {
+  return {
+    schema: processInput({ apiSchema, input: mutationVars.inputTypeName }),
+    uiSchema: {}
   };
 };
 

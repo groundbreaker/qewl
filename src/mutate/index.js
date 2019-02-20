@@ -4,8 +4,11 @@ import { compose, setDisplayName } from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
-import withFormHandlers from "../withFormHandlers";
-import { processFormData, processSchemas } from "../utils/json-schema";
+import {
+  processFormData,
+  processSchemas,
+  removeNullKeys
+} from "../utils/json-schema";
 import { schema as convertToJoi } from "enjoi";
 import joi from "joi";
 
@@ -72,7 +75,6 @@ const decorateEditBase = args => {
           };
         },
         props: props => ({
-          formData: processFormData(props.data[mutationVars.detailQueryName]),
           [dataKey || `data`]: props.data[mutationVars.detailQueryName],
           loading: props.data.loading,
           apolloInternalError: props.data.error
@@ -86,15 +88,20 @@ const decorateEditBase = args => {
           props.ownProps.apiSchema,
           mutationVars
         );
+
+        const formData = processFormData({
+          schema,
+          data: props.ownProps[dataKey || `data`]
+        });
+
         return {
+          formData,
           onSubmit: createOnSubmitHandler(props, schema, mutation),
           schema,
           uiSchema
         };
       }
-    }),
-    setDisplayName("Qewl(withFormHandlers)"),
-    withFormHandlers()
+    })
   );
 };
 
@@ -126,15 +133,21 @@ const createOnSubmitHandler = (props, schema, mutation) => (
   data,
   options = {}
 ) => {
+  const processedData = removeEmpty(processFormData({ schema, data }));
+
   const boundMutate = validData =>
     props.mutate({ mutation: mutation, variables: { input: validData } });
 
   if (options.validateDefault || options.validateSchema) {
     return new Promise((resolve, reject) => {
       joi
-        .validate(data, options.validateSchema || convertToJoi(schema), {
-          abortEarly: false
-        })
+        .validate(
+          removeNullKeys(processedData),
+          options.validateSchema || convertToJoi(schema),
+          {
+            abortEarly: false
+          }
+        )
         .then(async values => {
           try {
             const result = await boundMutate(values);
@@ -150,12 +163,32 @@ const createOnSubmitHandler = (props, schema, mutation) => (
   }
   return new Promise(async (resolve, reject) => {
     try {
-      const result = await boundMutate(data);
+      const result = await boundMutate(processedData);
       resolve(result);
     } catch (error) {
       reject(error);
     }
   });
+};
+
+const removeEmpty = obj => {
+  const objCopy = JSON.parse(JSON.stringify(obj));
+
+  Object.entries(objCopy).forEach(([key, val]) => {
+    if (
+      typeof val === "object" &&
+      !_.isArray(val) &&
+      !_.compact(Object.values(val)).length
+    ) {
+      delete objCopy[key];
+      return;
+    }
+
+    (val && typeof val === "object" && removeEmpty(val)) ||
+      (val === "" && (objCopy[key] = null));
+  });
+
+  return objCopy;
 };
 
 export const gqlMutate = (mutationVars, fields) => {

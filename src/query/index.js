@@ -5,7 +5,7 @@ import _ from "underscore";
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
 
 const decorateDetailBase = args => {
-  const { dataKey, fields, Loading, params, queryName, resource } = args;
+  const { dataKey, fields, params, queryName, resource } = args;
   const queryWithoutId = params && params.queryWithoutId;
   const query = queryName || `get${resource}`;
 
@@ -29,14 +29,14 @@ const decorateDetailBase = args => {
 };
 
 const decorateListBase = args => {
-  const { dataKey, fields, Loading, params, queryName, resource } = args;
+  const { dataKey, fields, params, queryName, resource } = args;
   const query = queryName || `list${pluralize(resource)}`;
 
   return compose(
     setDisplayName(`QewlList(${resource})`),
     graphql(gqlFetchList(query, fields, `${resource}FilterInput`), {
       options: {
-        fetchPolicy: "network-only",
+        fetchPolicy: "cache-and-network",
         variables: params
       },
       props: props => {
