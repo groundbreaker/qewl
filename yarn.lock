@@ -673,6 +673,23 @@
     lodash "^4.17.10"
     to-fast-properties "^2.0.0"
 
+"@groundbreaker/qewl-forms@^1.0.0":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@groundbreaker/qewl-forms/-/qewl-forms-1.0.1.tgz#901645273420d64a601daece8352f37fcd585d56"
+  integrity sha512-aPSbarhRGgGrOyr4q9aMJZBH+Z35X4p4CRFqZ5BH14jnVqrngzE4qwyp8juJMlKd/yFo/zWBMZd+NcZCCPL6pQ==
+  dependencies:
+    deepmerge "^3.1.0"
+    enjoi "^5.0.1"
+    graphql "^14.0.2"
+    graphql-tag "^2.10.0"
+    joi "^14.3.1"
+    omit-deep "^0.3.0"
+    pluralize "^7.0.0"
+    react-apollo "^2.2.4"
+    recompose "^0.30.0"
+    underscore "^1.9.1"
+    underscore.string "^3.3.5"
+
 "@types/async@2.0.50":
   version "2.0.50"
   resolved "https://registry.yarnpkg.com/@types/async/-/async-2.0.50.tgz#117540e026d64e1846093abbd5adc7e27fda7bcb"
@@ -1992,6 +2009,11 @@ deep-is@~0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.3.tgz#b369d6fb5dbc13eecf524f91b070feedc357cf34"
   integrity sha1-s2nW+128E+7PUk+RsHD+7cNXzzQ=
+
+deepmerge@^3.1.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-3.2.0.tgz#58ef463a57c08d376547f8869fdc5bcee957f44e"
+  integrity sha512-6+LuZGU7QCNUnAJyX8cIrlzoEgggTM6B7mm+znKOX4t5ltluT9KLjN6g61ECMS0LTsLW7yDpNoxhix5FZcrIow==
 
 default-require-extensions@^1.0.0:
   version "1.0.0"
