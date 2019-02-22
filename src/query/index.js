@@ -2,16 +2,16 @@ import { graphql } from "react-apollo";
 import { compose, setDisplayName } from "recompose";
 import pluralize from "pluralize";
 import _ from "underscore";
+
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
 
 const decorateDetailBase = args => {
   const { dataKey, fields, params, queryName, resource } = args;
-  const queryWithoutId = params && params.queryWithoutId;
   const query = queryName || `get${resource}`;
 
   return compose(
     setDisplayName(`QewlDetail(${resource})`),
-    graphql(gqlFetchDetail(query, fields, queryWithoutId), {
+    graphql(gqlFetchDetail(query, fields, params && params.queryWithoutId), {
       options: props => ({
         variables: {
           ...params,
