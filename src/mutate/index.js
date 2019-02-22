@@ -8,7 +8,7 @@ import { generateUISchema } from "../utils/ui-schema";
 
 import withForm from "@groundbreaker/qewl-forms";
 
-import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
+import { gqlFetchDetail, mapperWrapper } from "../common";
 
 const decorateCreateBase = args => {
   const mutationVars = processMutationVars(args);
@@ -18,16 +18,6 @@ const decorateCreateBase = args => {
     setDisplayName(`QewlCreate(${args.resource})`),
     withForm({ input: mutationVars.inputTypeName }),
     graphql(mutation, {
-      options: {
-        ...(() =>
-          (args.refetch || true) && {
-            refetchQueries: [
-              {
-                query: gqlFetchList(mutationVars.queryName, args.fields)
-              }
-            ]
-          })()
-      },
       props: ({ ownProps: { formData, schema }, mutate }) => ({
         uiSchema: generateUISchema(schema),
         onSubmit: () =>
@@ -60,12 +50,7 @@ const decorateEditBase = args => {
                 (args.params && args.params.id) ||
                 props.match.params.id
             },
-            fetchPolicy: "cache-and-network",
-            refetchQueries: [
-              {
-                query: gqlFetchList(mutationVars.queryName, args.fields)
-              }
-            ]
+            fetchPolicy: "cache-and-network"
           };
         },
         props: props => ({
