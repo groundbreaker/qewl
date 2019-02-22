@@ -11,7 +11,8 @@ import withForm from "@groundbreaker/qewl-forms";
 import { gqlFetchDetail, mapperWrapper } from "../common";
 
 const decorateCreateBase = args => {
-  const mutation = gqlMutate(processMutationVars(args, "create"), args.fields);
+  const mutationVars = processMutationVars(args, "create");
+  const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
     setDisplayName(`QewlCreate(${args.resource})`),
@@ -32,7 +33,8 @@ const decorateCreateBase = args => {
 
 const decorateEditBase = args => {
   const { dataKey, fields, params } = args;
-  const mutation = gqlMutate(processMutationVars(args, "update"), args.fields);
+  const mutationVars = processMutationVars(args, "update");
+  const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
     setDisplayName(`QewlEditFetch(${args.resource})`),
