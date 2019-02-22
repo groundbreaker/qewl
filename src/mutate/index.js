@@ -48,10 +48,7 @@ const decorateEditBase = args => {
         options: props => {
           return {
             variables: {
-              id:
-                (props && props.id) ||
-                (args.params && args.params.id) ||
-                props.match.params.id
+              id: { ...props.match.params, ...props, ...args.params }.id
             },
             fetchPolicy: "cache-and-network"
           };
@@ -89,10 +86,7 @@ const decorateDeleteBase = args => {
             mutation: mutation,
             variables: {
               input: {
-                id:
-                  (props && props.id) ||
-                  (params && params.id) ||
-                  props.match.params.id
+                id: { ...props.match.params, ...props, ...args.params }.id
               }
             }
           })

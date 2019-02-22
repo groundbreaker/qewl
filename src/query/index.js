@@ -15,7 +15,7 @@ const decorateDetailBase = args => {
       options: props => ({
         variables: {
           ...params,
-          ...{ id: (params && params.id) || props.match.params.id }
+          ...{ id: { ...props.match.params, ...params }.id }
         },
         fetchPolicy: "cache-and-network"
       }),
