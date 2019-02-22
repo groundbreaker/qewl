@@ -15,8 +15,9 @@ const decorateCreateBase = args => {
   const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
-    setDisplayName(`QewlCreate(${args.resource})`),
+    setDisplayName(`Qewl(WithForm)`),
     withForm({ input: mutationVars.inputTypeName }),
+    setDisplayName(`QewlCreate(${args.resource})`),
     graphql(mutation, {
       props: ({ ownProps: { formData, schema }, mutate }) => ({
         uiSchema: generateUISchema(schema),
