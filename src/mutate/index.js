@@ -4,6 +4,8 @@ import { compose, setDisplayName, branch, renderNothing } from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
 
+import { generateUISchema } from "../utils/ui-schema";
+
 import withForm from "@groundbreaker/qewl-forms";
 
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
@@ -26,8 +28,8 @@ const decorateCreateBase = args => {
             ]
           })()
       },
-      props: ({ ownProps: { formData }, mutate }) => ({
-        uiSchema: {},
+      props: ({ ownProps: { formData, schema }, mutate }) => ({
+        uiSchema: generateUISchema(schema),
         onSubmit: () =>
           mutate({
             mutation: mutation,
@@ -78,8 +80,8 @@ const decorateEditBase = args => {
     withForm({ input: mutationVars.inputTypeName, dataKey: dataKey || "data" }),
     setDisplayName(`QewlEditMutate(${args.resource})`),
     graphql(mutation, {
-      props: ({ ownProps: { formData }, mutate }) => ({
-        uiSchema: {},
+      props: ({ ownProps: { formData, schema }, mutate }) => ({
+        uiSchema: generateUISchema(schema),
         onSubmit: () =>
           mutate({ mutation: mutation, variables: { input: formData } })
       })
