@@ -11,8 +11,7 @@ import withForm from "@groundbreaker/qewl-forms";
 import { gqlFetchDetail, mapperWrapper } from "../common";
 
 const decorateCreateBase = args => {
-  const mutationVars = processMutationVars(args);
-  const mutation = gqlMutate(mutationVars, args.fields);
+  const mutation = gqlMutate(processMutationVars(args, "create"), args.fields);
 
   return compose(
     setDisplayName(`QewlCreate(${args.resource})`),
@@ -33,14 +32,16 @@ const decorateCreateBase = args => {
 
 const decorateEditBase = args => {
   const { dataKey, fields, params } = args;
-  const queryWithoutId = params && params.queryWithoutId;
-  const mutationVars = processMutationVars({ ...args, ...{ update: true } });
-  const mutation = gqlMutate(mutationVars, args.fields);
+  const mutation = gqlMutate(processMutationVars(args, "update"), args.fields);
 
   return compose(
     setDisplayName(`QewlEditFetch(${args.resource})`),
     graphql(
-      gqlFetchDetail(mutationVars.detailQueryName, fields, queryWithoutId),
+      gqlFetchDetail(
+        mutationVars.detailQueryName,
+        fields,
+        params && params.queryWithoutId
+      ),
       {
         options: props => {
           return {
@@ -75,8 +76,8 @@ const decorateEditBase = args => {
 };
 
 const decorateDeleteBase = args => {
-  const mutationVars = processMutationVars({ ...args, ...{ destroy: true } });
-  const mutation = gqlMutate(mutationVars, args.fields);
+  const mutation = gqlMutate(processMutationVars(args, "destroy"), args.fields);
+
   return compose(
     setDisplayName(`QewlDeleteMutate(${args.resource})`),
     graphql(mutation, {
@@ -106,37 +107,27 @@ export const gqlMutate = (mutationVars, fields) => {
       }`;
 };
 
-export const processInputTypeName = args => {
-  const { destroy, resource, update } = args;
-  let inputTypeName = `Create${resource}Input`;
+export const processInputTypeName = ({ resource }, type) => {
+  const inputTypeNames = {
+    create: `Create${resource}Input`,
+    destroy: `Delete${resource}Input`,
+    update: `Update${resource}Input`
+  };
 
-  if (destroy) {
-    inputTypeName = `Delete${resource}Input`;
-  }
-
-  if (update) {
-    inputTypeName = `Update${resource}Input`;
-  }
-
-  return inputTypeName;
+  return inputTypeNames[type];
 };
 
-export const processMutationName = args => {
-  const { destroy, resource, update } = args;
-  let mutationName = `create${resource}`;
+export const processMutationName = ({ resource }, type) => {
+  const mutationNames = {
+    create: `create${resource}`,
+    destroy: `delete${resource}`,
+    update: `update${resource}`
+  };
 
-  if (destroy) {
-    mutationName = `delete${resource}`;
-  }
-
-  if (update) {
-    mutationName = `update${resource}`;
-  }
-
-  return mutationName;
+  return mutationNames[type];
 };
 
-export const processMutationVars = args => {
+export const processMutationVars = (args, type) => {
   const {
     inputTypeName,
     mutationName,
@@ -147,8 +138,8 @@ export const processMutationVars = args => {
 
   return {
     detailQueryName: detailQueryName || `get${resource}`,
-    inputTypeName: inputTypeName || processInputTypeName(args),
-    mutationName: mutationName || processMutationName(args),
+    inputTypeName: inputTypeName || processInputTypeName(args, type),
+    mutationName: mutationName || processMutationName(args, type),
     queryName: queryName || `list${pluralize(resource)}`
   };
 };
