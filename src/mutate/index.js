@@ -27,8 +27,7 @@ const decorateCreateBase = args => {
             variables: { input: formData }
           })
       })
-    }),
-    setDisplayName(`QewlForm`)
+    })
   );
 };
 
@@ -65,7 +64,7 @@ const decorateEditBase = args => {
       }
     ),
     branch(props => !props[dataKey || `data`], renderNothing),
-    setDisplayName(`QewlForm`),
+    setDisplayName(`Qewl(WithForm)`),
     withForm({ input: mutationVars.inputTypeName, dataKey: dataKey || "data" }),
     setDisplayName(`QewlEditMutate(${args.resource})`),
     graphql(mutation, {
