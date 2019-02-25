@@ -32,7 +32,14 @@ const decorateCreateBase = args => {
 };
 
 const decorateEditBase = args => {
-  const { dataKey, fields, fetchFields, excludeFromForm = [] } = args;
+  const {
+    mergeKey,
+    dataKey,
+    params,
+    fields,
+    fetchFields,
+    excludeFromForm = []
+  } = args;
   const mutationVars = processMutationVars(args, "update");
   const mutation = gqlMutate(mutationVars, args.fields);
 
@@ -48,25 +55,27 @@ const decorateEditBase = args => {
         options: props => {
           return {
             variables: {
-              id: { ...props.match.params, ...props, ...args.params }.id
+              id: { ...props.match.params, ...props, ...params }.id
             },
             fetchPolicy: "cache-and-network"
           };
         },
-        props: props => ({
-          // formData: _.omit(
-          //   processFormData(props.data[mutationVars.detailQueryName]),
-          //   excludeFromForm
-          // ),
-          [dataKey || `data`]: props.data[mutationVars.detailQueryName],
-          loading: props.data.loading,
-          apolloInternalError: props.data.error
-        })
+        props: props => {
+          return {
+            [dataKey || `data`]: props.data[mutationVars.detailQueryName],
+            loading: props.data.loading,
+            apolloInternalError: props.data.error
+          };
+        }
       }
     ),
     branch(props => !props[dataKey || `data`], renderNothing),
     setDisplayName(`Qewl(WithForm)`),
-    withForm({ input: mutationVars.inputTypeName, dataKey: dataKey || "data" }),
+    withForm({
+      input: mutationVars.inputTypeName,
+      dataKey: dataKey || "data",
+      mergeKey
+    }),
     setDisplayName(`QewlEditMutate(${args.resource})`),
     graphql(mutation, {
       props: ({ ownProps: { formData, schema }, mutate }) => ({
