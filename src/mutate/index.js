@@ -45,7 +45,7 @@ const decorateCreateBase = args => {
 };
 
 const decorateEditBase = args => {
-  const { dataKey, fields, params, fetchFields } = args;
+  const { dataKey, fields, params, fetchFields, excludeFromForm = [] } = args;
   const queryWithoutId = params && params.queryWithoutId;
   const mutationVars = processMutationVars({ ...args, ...{ update: true } });
   const mutation = gqlMutate(mutationVars, args.fields);
@@ -79,7 +79,10 @@ const decorateEditBase = args => {
           };
         },
         props: props => ({
-          formData: processFormData(props.data[mutationVars.detailQueryName]),
+          formData: _.omit(
+            processFormData(props.data[mutationVars.detailQueryName]),
+            excludeFromForm
+          ),
           [dataKey || `data`]: props.data[mutationVars.detailQueryName],
           loading: props.data.loading,
           apolloInternalError: props.data.error
@@ -93,8 +96,22 @@ const decorateEditBase = args => {
           props.ownProps.apiSchema,
           mutationVars
         );
+        const idSchema = {
+          type: "string"
+        };
         return {
-          onSubmit: createOnSubmitHandler(props, schema, mutation),
+          onSubmit: createOnSubmitHandler(
+            props,
+            {
+              ...schema,
+              required: [...schema.required, "id"],
+              properties: {
+                ...schema.properties,
+                id: idSchema
+              }
+            },
+            mutation
+          ),
           schema,
           uiSchema
         };
