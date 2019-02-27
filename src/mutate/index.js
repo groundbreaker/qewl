@@ -1,6 +1,12 @@
 import gql from "graphql-tag";
 import { graphql } from "react-apollo";
-import { compose, setDisplayName, branch, renderNothing } from "recompose";
+import {
+  compose,
+  setDisplayName,
+  branch,
+  renderNothing,
+  withProps
+} from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
 
@@ -10,13 +16,13 @@ import withForm from "@groundbreaker/qewl-forms";
 
 import { gqlFetchDetail, mapperWrapper } from "../common";
 
-const decorateCreateBase = args => {
+const decorateCreateBase = ({ rjsf, ...args }) => {
   const mutationVars = processMutationVars(args, "create");
   const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
     setDisplayName(`Qewl(WithForm)`),
-    withForm({ input: mutationVars.inputTypeName }),
+    withForm({ input: mutationVars.inputTypeName, rjsf }),
     setDisplayName(`QewlCreate(${args.resource})`),
     graphql(mutation, {
       props: ({ ownProps: { formData, schema }, mutate }) => ({
@@ -24,7 +30,9 @@ const decorateCreateBase = args => {
         onSubmit: () =>
           mutate({
             mutation: mutation,
-            variables: { input: formData }
+            variables: {
+              input: optionalData ? optionalData : formData
+            }
           })
       })
     })
@@ -38,12 +46,19 @@ const decorateEditBase = args => {
     params,
     fields,
     fetchFields,
-    excludeFromForm = []
+    rjsf,
+    excludeFromInput = []
   } = args;
   const mutationVars = processMutationVars(args, "update");
   const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
+    withProps(props => {
+      if (!props.apiSchema)
+        console.error(
+          "THE ERRORS YOU SEE ARE BECAUSE QEWL IS MISSING THE API SCHEMA"
+        );
+    }),
     setDisplayName(`QewlEditFetch(${args.resource})`),
     graphql(
       gqlFetchDetail(
@@ -55,7 +70,11 @@ const decorateEditBase = args => {
         options: props => {
           return {
             variables: {
-              id: { ...props.match.params, ...props, ...params }.id
+              id: {
+                ...(props.match && props.match.params),
+                ...props,
+                ...params
+              }.id
             },
             fetchPolicy: "cache-and-network"
           };
@@ -74,14 +93,23 @@ const decorateEditBase = args => {
     withForm({
       input: mutationVars.inputTypeName,
       dataKey: dataKey || "data",
-      mergeKey
+      mergeKey,
+      rjsf
     }),
     setDisplayName(`QewlEditMutate(${args.resource})`),
     graphql(mutation, {
       props: ({ ownProps: { formData, schema }, mutate }) => ({
         uiSchema: generateUISchema(schema),
-        onSubmit: () =>
-          mutate({ mutation: mutation, variables: { input: formData } })
+        onSubmit: optionalData =>
+          mutate({
+            mutation: mutation,
+            variables: {
+              input: _.omit(
+                optionalData ? optionalData : formData,
+                excludeFromInput
+              )
+            }
+          })
       })
     })
   );
@@ -94,12 +122,18 @@ const decorateDeleteBase = args => {
     setDisplayName(`QewlDeleteMutate(${args.resource})`),
     graphql(mutation, {
       props: props => ({
-        [`delete${args.resource}`]: params =>
+        [`delete${args.resource}`]: id =>
           props.mutate({
             mutation: mutation,
             variables: {
               input: {
-                id: { ...props.match.params, ...props, ...args.params }.id
+                id:
+                  id ||
+                  {
+                    ...(props.match && props.match.params),
+                    ...props,
+                    ...args.params
+                  }.id
               }
             }
           })
