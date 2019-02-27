@@ -27,7 +27,7 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
     graphql(mutation, {
       props: ({ ownProps: { formData, schema }, mutate }) => ({
         uiSchema: generateUISchema(schema),
-        onSubmit: () =>
+        onSubmit: optionalData =>
           mutate({
             mutation: mutation,
             variables: {
