@@ -23,8 +23,10 @@ module.exports = {
     ]
   },
   node: {
-    net: "empty"
+    net: "empty",
+    crypto: "empty",
+    process: false
   },
   plugins: [new UglifyJsPlugin()],
-  externals: ["react"]
+  externals: ["react", "react-apollo", "apollo-link"]
 };

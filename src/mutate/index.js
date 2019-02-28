@@ -1,120 +1,37 @@
 import gql from "graphql-tag";
 import { graphql } from "react-apollo";
-import { compose, setDisplayName } from "recompose";
+import {
+  compose,
+  setDisplayName,
+  branch,
+  renderNothing,
+  withProps
+} from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
-import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
-import withFormHandlers from "../withFormHandlers";
-import { processFormData, processSchemas } from "../utils/json-schema";
-import { schema as convertToJoi } from "enjoi";
-import joi from "joi";
 
-const decorateCreateBase = args => {
-  const mutationVars = processMutationVars(args);
+import { generateUISchema } from "../utils/ui-schema";
+
+import withForm from "@groundbreaker/qewl-forms";
+
+import { gqlFetchDetail, mapperWrapper } from "../common";
+
+const decorateCreateBase = ({ rjsf, ...args }) => {
+  const mutationVars = processMutationVars(args, "create");
   const mutation = gqlMutate(mutationVars, args.fields);
 
-  let refetch = true;
-  if (args.refetch === false) refetch = false;
-
   return compose(
+    setDisplayName(`Qewl(WithForm)`),
+    withForm({ input: mutationVars.inputTypeName, rjsf }),
     setDisplayName(`QewlCreate(${args.resource})`),
     graphql(mutation, {
-      options: {
-        ...(() =>
-          refetch && {
-            refetchQueries: [
-              {
-                query: gqlFetchList(mutationVars.queryName, args.fields)
-              }
-            ]
-          })()
-      },
-      props: props => {
-        const { schema, uiSchema } = processSchemas(
-          props.ownProps.apiSchema,
-          mutationVars
-        );
-        return {
-          onSubmit: createOnSubmitHandler(props, schema, mutation),
-          schema,
-          uiSchema
-        };
-      }
-    })
-  );
-};
-
-const decorateEditBase = args => {
-  const { dataKey, fields, params } = args;
-  const queryWithoutId = params && params.queryWithoutId;
-  const mutationVars = processMutationVars({ ...args, ...{ update: true } });
-  const mutation = gqlMutate(mutationVars, args.fields);
-
-  return compose(
-    setDisplayName(`QewlEditFetch(${args.resource})`),
-    graphql(
-      gqlFetchDetail(mutationVars.detailQueryName, fields, queryWithoutId),
-      {
-        options: props => {
-          return {
-            variables: {
-              id:
-                (props && props.id) ||
-                (args.params && args.params.id) ||
-                props.match.params.id
-            },
-            fetchPolicy: "cache-and-network",
-            refetchQueries: [
-              {
-                query: gqlFetchList(mutationVars.queryName, args.fields)
-              }
-            ]
-          };
-        },
-        props: props => ({
-          formData: processFormData(props.data[mutationVars.detailQueryName]),
-          [dataKey || `data`]: props.data[mutationVars.detailQueryName],
-          loading: props.data.loading,
-          apolloInternalError: props.data.error
-        })
-      }
-    ),
-    setDisplayName(`QewlEditMutate(${args.resource})`),
-    graphql(mutation, {
-      props: props => {
-        const { schema, uiSchema } = processSchemas(
-          props.ownProps.apiSchema,
-          mutationVars
-        );
-        return {
-          onSubmit: createOnSubmitHandler(props, schema, mutation),
-          schema,
-          uiSchema
-        };
-      }
-    }),
-    setDisplayName("Qewl(withFormHandlers)"),
-    withFormHandlers()
-  );
-};
-
-const decorateDeleteBase = args => {
-  const mutationVars = processMutationVars({ ...args, ...{ destroy: true } });
-  const mutation = gqlMutate(mutationVars, args.fields);
-  return compose(
-    setDisplayName(`QewlDeleteMutate(${args.resource})`),
-    graphql(mutation, {
-      props: props => ({
-        [`delete${args.resource}`]: params =>
-          props.mutate({
+      props: ({ ownProps: { formData, schema }, mutate }) => ({
+        uiSchema: generateUISchema(schema),
+        onSubmit: optionalData =>
+          mutate({
             mutation: mutation,
             variables: {
-              input: {
-                id:
-                  (props && props.id) ||
-                  (params && params.id) ||
-                  props.match.params.id
-              }
+              input: optionalData ? optionalData : formData
             }
           })
       })
@@ -122,40 +39,107 @@ const decorateDeleteBase = args => {
   );
 };
 
-const createOnSubmitHandler = (props, schema, mutation) => (
-  data,
-  options = {}
-) => {
-  const boundMutate = validData =>
-    props.mutate({ mutation: mutation, variables: { input: validData } });
+const decorateEditBase = args => {
+  const {
+    mergeKey,
+    dataKey,
+    params,
+    fields,
+    fetchFields,
+    rjsf,
+    excludeFromInput = []
+  } = args;
+  const mutationVars = processMutationVars(args, "update");
+  const mutation = gqlMutate(mutationVars, args.fields);
 
-  if (options.validateDefault || options.validateSchema) {
-    return new Promise((resolve, reject) => {
-      joi
-        .validate(data, options.validateSchema || convertToJoi(schema), {
-          abortEarly: false
-        })
-        .then(async values => {
-          try {
-            const result = await boundMutate(values);
-            resolve(result);
-          } catch (err) {
-            reject(err);
-          }
-        })
-        .catch(err => {
-          reject(err);
-        });
-    });
-  }
-  return new Promise(async (resolve, reject) => {
-    try {
-      const result = await boundMutate(data);
-      resolve(result);
-    } catch (error) {
-      reject(error);
-    }
-  });
+  return compose(
+    withProps(props => {
+      if (!props.apiSchema)
+        console.error(
+          "THE ERRORS YOU SEE ARE BECAUSE QEWL IS MISSING THE API SCHEMA"
+        );
+    }),
+    setDisplayName(`QewlEditFetch(${args.resource})`),
+    graphql(
+      gqlFetchDetail(
+        mutationVars.detailQueryName,
+        fetchFields || fields,
+        params && params.queryWithoutId
+      ),
+      {
+        options: props => {
+          return {
+            variables: {
+              id: {
+                ...(props.match && props.match.params),
+                ...props,
+                ...params
+              }.id
+            },
+            fetchPolicy: "cache-and-network"
+          };
+        },
+        props: props => {
+          return {
+            [dataKey || `data`]: props.data[mutationVars.detailQueryName],
+            loading: props.data.loading,
+            apolloInternalError: props.data.error
+          };
+        }
+      }
+    ),
+    branch(props => !props[dataKey || `data`], renderNothing),
+    setDisplayName(`Qewl(WithForm)`),
+    withForm({
+      input: mutationVars.inputTypeName,
+      dataKey: dataKey || "data",
+      mergeKey,
+      rjsf
+    }),
+    setDisplayName(`QewlEditMutate(${args.resource})`),
+    graphql(mutation, {
+      props: ({ ownProps: { formData, schema }, mutate }) => ({
+        uiSchema: generateUISchema(schema),
+        onSubmit: optionalData =>
+          mutate({
+            mutation: mutation,
+            variables: {
+              input: _.omit(
+                optionalData ? optionalData : formData,
+                excludeFromInput
+              )
+            }
+          })
+      })
+    })
+  );
+};
+
+const decorateDeleteBase = args => {
+  const mutation = gqlMutate(processMutationVars(args, "destroy"), args.fields);
+
+  return compose(
+    setDisplayName(`QewlDeleteMutate(${args.resource})`),
+    graphql(mutation, {
+      props: props => ({
+        [`delete${args.resource}`]: id =>
+          props.mutate({
+            mutation: mutation,
+            variables: {
+              input: {
+                id:
+                  id ||
+                  {
+                    ...(props.match && props.match.params),
+                    ...props,
+                    ...args.params
+                  }.id
+              }
+            }
+          })
+      })
+    })
+  );
 };
 
 export const gqlMutate = (mutationVars, fields) => {
@@ -166,37 +150,27 @@ export const gqlMutate = (mutationVars, fields) => {
       }`;
 };
 
-export const processInputTypeName = args => {
-  const { destroy, resource, update } = args;
-  let inputTypeName = `Create${resource}Input`;
+export const processInputTypeName = ({ resource }, type) => {
+  const inputTypeNames = {
+    create: `Create${resource}Input`,
+    destroy: `Delete${resource}Input`,
+    update: `Update${resource}Input`
+  };
 
-  if (destroy) {
-    inputTypeName = `Delete${resource}Input`;
-  }
-
-  if (update) {
-    inputTypeName = `Update${resource}Input`;
-  }
-
-  return inputTypeName;
+  return inputTypeNames[type];
 };
 
-export const processMutationName = args => {
-  const { destroy, resource, update } = args;
-  let mutationName = `create${resource}`;
+export const processMutationName = ({ resource }, type) => {
+  const mutationNames = {
+    create: `create${resource}`,
+    destroy: `delete${resource}`,
+    update: `update${resource}`
+  };
 
-  if (destroy) {
-    mutationName = `delete${resource}`;
-  }
-
-  if (update) {
-    mutationName = `update${resource}`;
-  }
-
-  return mutationName;
+  return mutationNames[type];
 };
 
-export const processMutationVars = args => {
+export const processMutationVars = (args, type) => {
   const {
     inputTypeName,
     mutationName,
@@ -207,8 +181,8 @@ export const processMutationVars = args => {
 
   return {
     detailQueryName: detailQueryName || `get${resource}`,
-    inputTypeName: inputTypeName || processInputTypeName(args),
-    mutationName: mutationName || processMutationName(args),
+    inputTypeName: inputTypeName || processInputTypeName(args, type),
+    mutationName: mutationName || processMutationName(args, type),
     queryName: queryName || `list${pluralize(resource)}`
   };
 };

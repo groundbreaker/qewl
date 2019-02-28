@@ -1,6 +1,6 @@
 {
   "name": "@groundbreaker/qewl",
-  "version": "1.8.11",
+  "version": "1.10.0",
   "description": "React Apollo and AppSync middleware designed to eliminate graqhql boilerplate code.",
   "license": "MIT",
   "author": "GroundBreaker Engineering Team <eng@groundbreaker.co>",
@@ -18,13 +18,11 @@
     "test": "jest --env=jsdom"
   },
   "dependencies": {
-    "enjoi": "^5.0.1",
+    "@groundbreaker/qewl-forms": "^1.0.0",
     "graphql": "^14.0.2",
     "graphql-tag": "^2.10.0",
-    "joi": "^14.3.1",
     "pluralize": "^7.0.0",
     "react-apollo": "^2.2.4",
-    "react-dom": "^16.6.0",
     "recompose": "^0.30.0",
     "underscore": "^1.9.1",
     "underscore.string": "^3.3.5"
@@ -45,15 +43,14 @@
     "enzyme": "^3.7.0",
     "enzyme-adapter-react-16": "^1.6.0",
     "graphql-tools": "^4.0.0",
-    "jest": "^23.6.0",
+    "jest": "^24.1.0",
     "prop-types": "^15.6.2",
     "react": "^16.5.2",
+    "react-dom": "^16.5.2",
     "react-test-renderer": "^16.6.0",
     "uglifyjs-webpack-plugin": "^1.2.7",
     "webpack": "4.19.1",
+    "webpack-bundle-analyzer": "^3.0.4",
     "webpack-cli": "^3.1.2"
-  },
-  "resolutions": {
-    "babel-core": "7.0.0-bridge.0"
   }
 }

@@ -2,25 +2,25 @@ import { graphql } from "react-apollo";
 import { compose, setDisplayName } from "recompose";
 import pluralize from "pluralize";
 import _ from "underscore";
+
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
 
 const decorateDetailBase = args => {
-  const { dataKey, fields, Loading, params, queryName, resource } = args;
-  const queryWithoutId = params && params.queryWithoutId;
+  const { dataKey, fields, params, queryName, resource } = args;
   const query = queryName || `get${resource}`;
 
   return compose(
     setDisplayName(`QewlDetail(${resource})`),
-    graphql(gqlFetchDetail(query, fields, queryWithoutId), {
+    graphql(gqlFetchDetail(query, fields, params && params.queryWithoutId), {
       options: props => ({
         variables: {
           ...params,
-          ...{ id: (params && params.id) || props.match.params.id }
+          ...{ id: { ...props.match.params, ...params }.id }
         },
         fetchPolicy: "cache-and-network"
       }),
       props: props => ({
-        ...(() => props.data.error && console.log("APOLLO ERROR", props))(),
+        apolloInternalError: props.data.error,
         [dataKey || `data`]: props.data[query],
         loading: props.data.loading
       })
@@ -29,14 +29,14 @@ const decorateDetailBase = args => {
 };
 
 const decorateListBase = args => {
-  const { dataKey, fields, Loading, params, queryName, resource } = args;
+  const { dataKey, fields, params, queryName, resource } = args;
   const query = queryName || `list${pluralize(resource)}`;
 
   return compose(
     setDisplayName(`QewlList(${resource})`),
     graphql(gqlFetchList(query, fields, `${resource}FilterInput`), {
       options: {
-        fetchPolicy: "network-only",
+        fetchPolicy: "cache-and-network",
         variables: params
       },
       props: props => {
@@ -44,6 +44,7 @@ const decorateListBase = args => {
           data: { fetchMore }
         } = props;
         return {
+          apolloInternalError: props.data.error,
           filterQuery: params => {
             fetchMore({
               variables: params,
