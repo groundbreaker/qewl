@@ -15,7 +15,7 @@
     "build": "webpack-cli --mode=production",
     "dev": "yarn build -w",
     "prepare": "yarn build",
-    "test": "jest --env=jsdom"
+    "test": "echo \"Error: no test specified\""
   },
   "dependencies": {
     "@groundbreaker/qewl-forms": "^1.3.1",
