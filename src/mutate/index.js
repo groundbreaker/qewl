@@ -22,12 +22,16 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
 
   return compose(
     setDisplayName(`Qewl(WithForm)`),
-    withForm({ input: mutationVars.inputTypeName, rjsf }),
+    withForm({
+      input: mutationVars.inputTypeName,
+      rjsf,
+      defaultValues: args.defaultValues
+    }),
     setDisplayName(`QewlCreate(${args.resource})`),
     graphql(mutation, {
       props: ({ ownProps: { formData, schema }, mutate }) => ({
         uiSchema: generateUISchema(schema),
-        onSubmit: optionalData =>
+        [args.submitKey || `onSubmit`]: optionalData =>
           mutate({
             mutation: mutation,
             variables: {
@@ -41,12 +45,15 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
 
 const decorateEditBase = args => {
   const {
+    defaultValues,
     mergeKey,
     dataKey,
     params,
     fields,
     fetchFields,
+    resource,
     rjsf,
+    submitKey,
     excludeFromInput = []
   } = args;
   const mutationVars = processMutationVars(args, "update");
@@ -59,7 +66,7 @@ const decorateEditBase = args => {
           "THE ERRORS YOU SEE ARE BECAUSE QEWL IS MISSING THE API SCHEMA"
         );
     }),
-    setDisplayName(`QewlEditFetch(${args.resource})`),
+    setDisplayName(`QewlEditFetch(${resource})`),
     graphql(
       gqlFetchDetail(
         mutationVars.detailQueryName,
@@ -94,13 +101,14 @@ const decorateEditBase = args => {
       input: mutationVars.inputTypeName,
       dataKey: dataKey || "data",
       mergeKey,
-      rjsf
+      rjsf,
+      defaultValues
     }),
-    setDisplayName(`QewlEditMutate(${args.resource})`),
+    setDisplayName(`QewlEditMutate(${resource})`),
     graphql(mutation, {
       props: ({ ownProps: { formData, schema }, mutate }) => ({
         uiSchema: generateUISchema(schema),
-        onSubmit: optionalData =>
+        [submitKey || `onSubmit`]: optionalData =>
           mutate({
             mutation: mutation,
             variables: {
