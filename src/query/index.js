@@ -6,7 +6,15 @@ import _ from "underscore";
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
 
 const decorateDetailBase = args => {
-  const { dataKey, fields, params, queryName, resource } = args;
+  const {
+    dataKey,
+    fetchPolicy,
+    fields,
+    params,
+    pollInterval,
+    queryName,
+    resource
+  } = args;
   const query = queryName || `get${resource}`;
 
   return compose(
@@ -17,7 +25,8 @@ const decorateDetailBase = args => {
           ...params,
           ...{ id: { ...props.match.params, ...params }.id }
         },
-        fetchPolicy: "cache-and-network"
+        fetchPolicy: fetchPolicy || "cache-and-network",
+        pollInterval: pollInterval || 0
       }),
       props: props => ({
         apolloInternalError: props.data.error,
@@ -29,14 +38,23 @@ const decorateDetailBase = args => {
 };
 
 const decorateListBase = args => {
-  const { dataKey, fields, params, queryName, resource } = args;
+  const {
+    dataKey,
+    fetchPolicy,
+    fields,
+    params,
+    pollInterval,
+    queryName,
+    resource
+  } = args;
   const query = queryName || `list${pluralize(resource)}`;
 
   return compose(
     setDisplayName(`QewlList(${resource})`),
     graphql(gqlFetchList(query, fields, `${resource}FilterInput`), {
       options: {
-        fetchPolicy: "cache-and-network",
+        fetchPolicy: fetchPolicy || "cache-and-network",
+        pollInterval: pollInterval || 0,
         variables: params
       },
       props: props => {
