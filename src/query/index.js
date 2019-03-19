@@ -5,16 +5,15 @@ import _ from "underscore";
 
 import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
 
-const decorateDetailBase = args => {
-  const {
-    dataKey,
-    fetchPolicy,
-    fields,
-    params,
-    pollInterval,
-    queryName,
-    resource
-  } = args;
+const decorateDetailBase = ({
+  dataKey,
+  fetchPolicy,
+  fields,
+  params,
+  pollInterval,
+  queryName,
+  resource
+}) => {
   const query = queryName || `get${resource}`;
 
   return compose(
@@ -37,16 +36,15 @@ const decorateDetailBase = args => {
   );
 };
 
-const decorateListBase = args => {
-  const {
-    dataKey,
-    fetchPolicy,
-    fields,
-    params,
-    pollInterval,
-    queryName,
-    resource
-  } = args;
+const decorateListBase = ({
+  dataKey,
+  fetchPolicy,
+  fields,
+  params,
+  pollInterval,
+  queryName,
+  resource
+}) => {
   const query = queryName || `list${pluralize(resource)}`;
 
   return compose(

@@ -21,6 +21,12 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
   const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
+    withProps(props => {
+      if (!props.apiSchema)
+        console.error(
+          "THE ERRORS YOU SEE ARE BECAUSE QEWL IS MISSING THE API SCHEMA"
+        );
+    }),
     setDisplayName(`Qewl(WithForm)`),
     withForm({
       input: mutationVars.inputTypeName,
@@ -29,15 +35,25 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
     }),
     setDisplayName(`QewlCreate(${args.resource})`),
     graphql(mutation, {
-      props: ({ ownProps: { formData, schema }, mutate }) => ({
+      props: ({
+        ownProps: { formData, schema, validateFormData },
+        mutate
+      }) => ({
         uiSchema: generateUISchema(schema),
-        [args.submitKey || `onSubmit`]: optionalData =>
-          mutate({
-            mutation: mutation,
-            variables: {
-              input: optionalData ? optionalData : formData
-            }
-          })
+        [args.submitKey || `onSubmit`]: optionalData => {
+          const errors = validateFormData(optionalData);
+
+          if (errors.dataValid) {
+            return mutate({
+              mutation: mutation,
+              variables: {
+                input: optionalData ? optionalData : formData
+              }
+            });
+          }
+
+          throw errors;
+        }
       })
     })
   );
@@ -106,18 +122,28 @@ const decorateEditBase = args => {
     }),
     setDisplayName(`QewlEditMutate(${resource})`),
     graphql(mutation, {
-      props: ({ ownProps: { formData, schema }, mutate }) => ({
+      props: ({
+        ownProps: { formData, validateFormData, schema },
+        mutate
+      }) => ({
         uiSchema: generateUISchema(schema),
-        [submitKey || `onSubmit`]: optionalData =>
-          mutate({
-            mutation: mutation,
-            variables: {
-              input: _.omit(
-                optionalData ? optionalData : formData,
-                excludeFromInput
-              )
-            }
-          })
+        [submitKey || `onSubmit`]: optionalData => {
+          const errors = validateFormData(optionalData);
+
+          if (errors.dataValid) {
+            return mutate({
+              mutation: mutation,
+              variables: {
+                input: _.omit(
+                  optionalData ? optionalData : formData,
+                  excludeFromInput
+                )
+              }
+            });
+          }
+
+          throw errors;
+        }
       })
     })
   );
