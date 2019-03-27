@@ -9,24 +9,20 @@ import {
 } from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
+import { gqlFetchList } from "../common";
 
 import { generateUISchema } from "../utils/ui-schema";
 
 import withForm from "@groundbreaker/qewl-forms";
 
-import { gqlFetchDetail, mapperWrapper } from "../common";
+import { gqlFetchDetail, mapperWrapper, panicIfNoApiSchema } from "../common";
 
 const decorateCreateBase = ({ rjsf, ...args }) => {
   const mutationVars = processMutationVars(args, "create");
   const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
-    withProps(props => {
-      if (!props.apiSchema)
-        console.error(
-          "THE ERRORS YOU SEE ARE BECAUSE QEWL IS MISSING THE API SCHEMA"
-        );
-    }),
+    panicIfNoApiSchema,
     setDisplayName(`Qewl(WithForm)`),
     withForm({
       input: mutationVars.inputTypeName,
@@ -35,6 +31,18 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
     }),
     setDisplayName(`QewlCreate(${args.resource})`),
     graphql(mutation, {
+      options: {
+        ...(args.refetch && {
+          refetchQueries: [
+            {
+              query: gqlFetchList(
+                mutationVars.queryName,
+                args.fetchFields || args.fields
+              )
+            }
+          ]
+        })
+      },
       props: ({
         ownProps: { formData, schema, validateFormData },
         mutate
@@ -42,7 +50,6 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
         uiSchema: generateUISchema(schema),
         [args.submitKey || `onSubmit`]: optionalData => {
           const errors = validateFormData(optionalData);
-
           if (errors.dataValid) {
             return mutate({
               mutation: mutation,
@@ -51,7 +58,6 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
               }
             });
           }
-
           throw errors;
         }
       })
@@ -76,12 +82,7 @@ const decorateEditBase = args => {
   const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
-    withProps(props => {
-      if (!props.apiSchema)
-        console.error(
-          "THE ERRORS YOU SEE ARE BECAUSE QEWL IS MISSING THE API SCHEMA"
-        );
-    }),
+    panicIfNoApiSchema,
     setDisplayName(`QewlEditFetch(${resource})`),
     graphql(
       gqlFetchDetail(
@@ -150,9 +151,11 @@ const decorateEditBase = args => {
 };
 
 const decorateDeleteBase = args => {
-  const mutation = gqlMutate(processMutationVars(args, "destroy"), args.fields);
-  
+  const mutationVars = processMutationVars(args, "destroy");
+  const mutation = gqlMutate(mutationVars, args.fields);
+
   return compose(
+    panicIfNoApiSchema,
     setDisplayName(`QewlDeleteMutate(${args.resource})`),
     graphql(mutation, {
       props: props => ({
@@ -161,7 +164,20 @@ const decorateDeleteBase = args => {
             mutation: mutation,
             variables: {
               input: input
-            }
+            },
+            ...(args.refetchQueries && {
+              refetchQueries: []
+            }),
+            ...(args.update && {
+              update: store => {
+                const defaultQuery = gqlFetchList(
+                  mutationVars.queryName,
+                  args.fetchFields || args.fields,
+                  "String"
+                );
+                args.update({ store, defaultQuery, input });
+              }
+            })
           })
       })
     })

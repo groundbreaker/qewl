@@ -1,5 +1,6 @@
 import gql from "graphql-tag";
 import { createFactory } from "react";
+import { withProps } from "recompose";
 import _ from "underscore";
 /**
  * Converts:
@@ -88,3 +89,10 @@ export const gqlFetchList = (queryName, fields, filter = null) => {
           }
         }`;
 };
+
+export const panicIfNoApiSchema = withProps(props => {
+  if (!props.apiSchema) {
+    console.error("ERR: You forgot to pass apiSchema to qewl.");
+    throw new Error({ message: " You forgot to pass apiSchema to qewl." });
+  }
+});
