@@ -161,10 +161,8 @@ const decorateDeleteBase = args => {
       props: props => ({
         [`delete${args.resource}`]: input =>
           props.mutate({
-            mutation: mutation,
-            variables: {
-              input: input
-            },
+            mutation,
+            variables: { input },
             ...(args.refetchQueries && {
               refetchQueries: []
             }),
