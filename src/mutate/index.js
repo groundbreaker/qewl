@@ -151,24 +151,16 @@ const decorateEditBase = args => {
 
 const decorateDeleteBase = args => {
   const mutation = gqlMutate(processMutationVars(args, "destroy"), args.fields);
-
+  
   return compose(
     setDisplayName(`QewlDeleteMutate(${args.resource})`),
     graphql(mutation, {
       props: props => ({
-        [`delete${args.resource}`]: id =>
+        [`delete${args.resource}`]: input =>
           props.mutate({
             mutation: mutation,
             variables: {
-              input: {
-                id:
-                  id ||
-                  {
-                    ...(props.match && props.match.params),
-                    ...props,
-                    ...args.params
-                  }.id
-              }
+              input: input
             }
           })
       })
