@@ -9,24 +9,20 @@ import {
 } from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
+import { gqlFetchList } from "../common";
 
 import { generateUISchema } from "../utils/ui-schema";
 
 import withForm from "@groundbreaker/qewl-forms";
 
-import { gqlFetchDetail, mapperWrapper } from "../common";
+import { gqlFetchDetail, mapperWrapper, panicIfNoApiSchema } from "../common";
 
 const decorateCreateBase = ({ rjsf, ...args }) => {
   const mutationVars = processMutationVars(args, "create");
   const mutation = gqlMutate(mutationVars, args.fields);
 
   return compose(
-    withProps(props => {
-      if (!props.apiSchema)
-        console.error(
-          "THE ERRORS YOU SEE ARE BECAUSE QEWL IS MISSING THE API SCHEMA"
-        );
-    }),
+    panicIfNoApiSchema,
     setDisplayName(`Qewl(WithForm)`),
     withForm({
       input: mutationVars.inputTypeName,
@@ -35,6 +31,18 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
     }),
     setDisplayName(`QewlCreate(${args.resource})`),
     graphql(mutation, {
+      options: {
+        ...(args.refetch && {
+          refetchQueries: [
+            {
+              query: gqlFetchList(
+                mutationVars.queryName,
+                args.fetchFields || args.fields
+              )
+            }
+          ]
+        })
+      },
       props: ({
         ownProps: { formData, schema, validateFormData },
         mutate
@@ -42,7 +50,6 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
         uiSchema: generateUISchema(schema),
         [args.submitKey || `onSubmit`]: optionalData => {
           const errors = validateFormData(optionalData);
-
           if (errors.dataValid) {
             return mutate({
               mutation: mutation,
@@ -51,7 +58,6 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
               }
             });
           }
-
           throw errors;
         }
       })
@@ -74,43 +80,36 @@ const decorateEditBase = args => {
   } = args;
   const mutationVars = processMutationVars(args, "update");
   const mutation = gqlMutate(mutationVars, args.fields);
+  const detailQuery = gqlFetchDetail(
+    mutationVars.detailQueryName,
+    fetchFields || fields,
+    params && params.queryWithoutId
+  );
 
   return compose(
-    withProps(props => {
-      if (!props.apiSchema)
-        console.error(
-          "THE ERRORS YOU SEE ARE BECAUSE QEWL IS MISSING THE API SCHEMA"
-        );
-    }),
+    panicIfNoApiSchema,
     setDisplayName(`QewlEditFetch(${resource})`),
-    graphql(
-      gqlFetchDetail(
-        mutationVars.detailQueryName,
-        fetchFields || fields,
-        params && params.queryWithoutId
-      ),
-      {
-        options: props => {
-          return {
-            variables: {
-              id: {
-                ...(props.match && props.match.params),
-                ...props,
-                ...params
-              }.id
-            },
-            fetchPolicy: "cache-and-network"
-          };
-        },
-        props: props => {
-          return {
-            [dataKey || `data`]: props.data[mutationVars.detailQueryName],
-            loading: props.data.loading,
-            apolloInternalError: props.data.error
-          };
-        }
+    graphql(detailQuery, {
+      options: props => {
+        return {
+          variables: {
+            id: {
+              ...(props.match && props.match.params),
+              ...props,
+              ...params
+            }.id
+          },
+          fetchPolicy: "cache-and-network"
+        };
+      },
+      props: props => {
+        return {
+          [dataKey || `data`]: props.data[mutationVars.detailQueryName],
+          loading: props.data.loading,
+          apolloInternalError: props.data.error
+        };
       }
-    ),
+    }),
     branch(props => !props[dataKey || `data`], renderNothing),
     setDisplayName(`Qewl(WithForm)`),
     withForm({
@@ -122,6 +121,22 @@ const decorateEditBase = args => {
     }),
     setDisplayName(`QewlEditMutate(${resource})`),
     graphql(mutation, {
+      options: {
+        ...(args.refetch && {
+          refetchQueries: [
+            {
+              query: detailQuery,
+              variables: {
+                id: {
+                  ...(props.match && props.match.params),
+                  ...props,
+                  ...params
+                }.id
+              }
+            }
+          ]
+        })
+      },
       props: ({
         ownProps: { formData, validateFormData, schema },
         mutate
@@ -150,26 +165,49 @@ const decorateEditBase = args => {
 };
 
 const decorateDeleteBase = args => {
-  const mutation = gqlMutate(processMutationVars(args, "destroy"), args.fields);
-
+  const { fetchFields, fields, params } = args;
+  const mutationVars = processMutationVars(args, "destroy");
+  const mutation = gqlMutate(mutationVars, fields);
   return compose(
+    panicIfNoApiSchema,
     setDisplayName(`QewlDeleteMutate(${args.resource})`),
     graphql(mutation, {
-      props: props => ({
-        [`delete${args.resource}`]: id =>
-          props.mutate({
-            mutation: mutation,
-            variables: {
-              input: {
-                id:
-                  id ||
-                  {
-                    ...(props.match && props.match.params),
-                    ...props,
-                    ...args.params
-                  }.id
+      options: props => ({
+        ...(args.refetch && {
+          refetchQueries: [
+            {
+              query: gqlFetchDetail(
+                mutationVars.detailQueryName,
+                fetchFields || fields,
+                params && params.queryWithoutId
+              ),
+              variables: {
+                id: {
+                  ...(props.match && props.match.params),
+                  ...props,
+                  ...params,
+                  ...args
+                }.id
               }
             }
+          ]
+        })
+      }),
+      props: props => ({
+        [`delete${args.resource}`]: input =>
+          props.mutate({
+            mutation,
+            variables: { input },
+            ...(args.update && {
+              update: store => {
+                const defaultQuery = gqlFetchList(
+                  mutationVars.queryName,
+                  args.fetchFields || args.fields,
+                  "String"
+                );
+                args.update({ store, defaultQuery, input });
+              }
+            })
           })
       })
     })
