@@ -3,7 +3,12 @@ import { compose, setDisplayName } from "recompose";
 import pluralize from "pluralize";
 import _ from "underscore";
 
-import { gqlFetchDetail, gqlFetchList, mapperWrapper } from "../common";
+import {
+  gqlFetchDetail,
+  gqlFetchList,
+  gqlFetchSearch,
+  mapperWrapper
+} from "../common";
 
 const decorateDetailBase = ({
   dataKey,
@@ -78,6 +83,31 @@ const decorateListBase = ({
   );
 };
 
+const decorateSearchBase = ({ dataKey, fields, defaultSearch }) =>
+  compose(
+    setDisplayName(`QewlSearch`),
+    graphql(gqlFetchSearch("search", fields), {
+      options: {
+        fetchPolicy: "no-cache",
+        variables: { keywords: defaultSearch || "" },
+        notifyOnNetworkStatusChange: true
+      },
+      props: props => {
+        const {
+          data: { refetch, error, loading, networkStatus, search = {} }
+        } = props;
+        return {
+          apolloInternalError: error,
+          submitSearch: params => refetch(params),
+          [dataKey || `searchResults`]: search.items || [],
+          loading,
+          networkStatus
+        };
+      }
+    })
+  );
+
 const decorateList = mapperWrapper(decorateListBase);
 const decorateDetail = mapperWrapper(decorateDetailBase);
-export { decorateDetail, decorateList };
+const decorateSearch = mapperWrapper(decorateSearchBase);
+export { decorateDetail, decorateList, decorateSearch };

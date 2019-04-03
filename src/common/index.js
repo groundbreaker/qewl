@@ -46,6 +46,12 @@ export const mapperWrapper = QewlComponent => config => BaseComponent => {
   return WrappedComponent;
 };
 
+export const gqlFetchSearch = (queryName, fields) => gql`
+  query($keywords: String!) {
+    ${queryName}(keywords: $keywords) { items { ${fields} }}
+  }
+`;
+
 export const gqlFetchDetail = (queryName, fields, queryWithoutId) => {
   if (queryWithoutId) {
     return gql`query {

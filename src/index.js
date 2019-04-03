@@ -1,5 +1,5 @@
 import { decorateCreate, decorateEdit, decorateDelete } from "./mutate";
-import { decorateDetail, decorateList } from "./query";
+import { decorateDetail, decorateList, decorateSearch } from "./query";
 import withSchema from "./withSchema";
 
 export {
@@ -8,5 +8,6 @@ export {
   decorateEdit,
   decorateDetail,
   decorateList,
+  decorateSearch,
   withSchema
 };
