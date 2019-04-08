@@ -683,9 +683,9 @@
     to-fast-properties "^2.0.0"
 
 "@groundbreaker/qewl-forms@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@groundbreaker/qewl-forms/-/qewl-forms-1.4.0.tgz#09305035bf2cd37cd98d64c746b5e91b30f4ce78"
-  integrity sha512-ygox3Iu50E9a23HiLgqlrAg3jjb9x1LipyO07JaECKHXVmcxK/xlguJRMWCtP0i8B/T4fVoxBd2x1VifRqqhUg==
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@groundbreaker/qewl-forms/-/qewl-forms-1.4.1.tgz#36ec6df206bf0c305b2ca8cfe2fa9448f8952a45"
+  integrity sha512-3tLL1g7RjO2a/MdKrUKTgH8qu1X1HXX1Uj5DQSDWgKkDJjL2NWaVcObcylQszR/NkrqlhIdkUbXjBSm1TL7/HA==
   dependencies:
     deepmerge "^3.1.0"
     graphql "^14.0.2"
