@@ -682,7 +682,7 @@
     lodash "^4.17.11"
     to-fast-properties "^2.0.0"
 
-"@groundbreaker/qewl-forms@^1.4.0":
+"@groundbreaker/qewl-forms@^1.4.1":
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/@groundbreaker/qewl-forms/-/qewl-forms-1.4.1.tgz#36ec6df206bf0c305b2ca8cfe2fa9448f8952a45"
   integrity sha512-3tLL1g7RjO2a/MdKrUKTgH8qu1X1HXX1Uj5DQSDWgKkDJjL2NWaVcObcylQszR/NkrqlhIdkUbXjBSm1TL7/HA==
