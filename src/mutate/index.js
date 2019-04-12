@@ -121,7 +121,7 @@ const decorateEditBase = args => {
     }),
     setDisplayName(`QewlEditMutate(${resource})`),
     graphql(mutation, {
-      options: {
+      options: props => ({
         ...(args.refetch && {
           refetchQueries: [
             {
@@ -136,7 +136,7 @@ const decorateEditBase = args => {
             }
           ]
         })
-      },
+      }),
       props: ({
         ownProps: { formData, validateFormData, schema },
         mutate
