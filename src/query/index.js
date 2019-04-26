@@ -51,10 +51,13 @@ const decorateListBase = ({
   resource
 }) => {
   const query = queryName || `list${pluralize(resource)}`;
-
+  const filter =
+    queryName.indexOf("filter") >= 0
+      ? `[${resource}DataFilterInput]`
+      : `${resource}FilterInput`;
   return compose(
     setDisplayName(`QewlList(${resource})`),
-    graphql(gqlFetchList(query, fields, `${resource}FilterInput`), {
+    graphql(gqlFetchList(query, fields, filter), {
       options: {
         fetchPolicy: fetchPolicy || "cache-and-network",
         pollInterval: pollInterval || 0,
