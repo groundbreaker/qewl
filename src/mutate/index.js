@@ -215,7 +215,9 @@ const decorateDeleteBase = args => {
 };
 
 export const gqlMutate = (mutationVars, fields) => {
-  return gql`mutation($input: ${mutationVars.inputTypeName}!){
+  return gql`mutation ${mutationVars.mutationName}($input: ${
+    mutationVars.inputTypeName
+  }!){
         ${mutationVars.mutationName}(input: $input) {
           ${fields}
         }

@@ -47,20 +47,20 @@ export const mapperWrapper = QewlComponent => config => BaseComponent => {
 };
 
 export const gqlFetchSearch = (queryName, fields) => gql`
-  query($keywords: String!) {
+  query ${queryName} ($keywords: String!) {
     ${queryName}(keywords: $keywords) { items { ${fields} }}
   }
 `;
 
 export const gqlFetchDetail = (queryName, fields, queryWithoutId) => {
   if (queryWithoutId) {
-    return gql`query {
+    return gql`query ${queryName} {
       ${queryName} {
         ${fields}
       }
     }`;
   }
-  return gql`query($id: ID!) {
+  return gql`query ${queryName}($id: ID!) {
           ${queryName}(
             id: $id
           ) {
@@ -71,7 +71,7 @@ export const gqlFetchDetail = (queryName, fields, queryWithoutId) => {
 
 export const gqlFetchList = (queryName, fields, filter = null) => {
   if (filter) {
-    return gql`query($limit: Int, $nextToken: String, $filter: ${filter}) {
+    return gql`query ${queryName}($limit: Int, $nextToken: String, $filter: ${filter}) {
           ${queryName} (
             filter: $filter,
             limit: $limit,
@@ -84,7 +84,7 @@ export const gqlFetchList = (queryName, fields, filter = null) => {
         }`;
   }
 
-  return gql`query($limit: Int, $nextToken: String) {
+  return gql`query ${queryName}($limit: Int, $nextToken: String) {
           ${queryName} (
             limit: $limit,
             nextToken: $nextToken
