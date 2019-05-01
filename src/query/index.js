@@ -52,7 +52,7 @@ const decorateListBase = ({
 }) => {
   const query = queryName || `list${pluralize(resource)}`;
   const filter =
-    queryName.indexOf("filter") >= 0
+    query.indexOf("filter") >= 0
       ? `[${resource}DataFilterInput]`
       : `${resource}FilterInput`;
   return compose(
