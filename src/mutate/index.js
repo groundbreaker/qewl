@@ -26,6 +26,7 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
     setDisplayName(`Qewl(WithForm)`),
     withForm({
       input: mutationVars.inputTypeName,
+      formName: args.formName,
       rjsf,
       defaultValues: args.defaultValues
     }),
@@ -115,6 +116,7 @@ const decorateEditBase = args => {
     withForm({
       input: mutationVars.inputTypeName,
       dataKey: dataKey || "data",
+      formName: args.formName,
       mergeKey,
       rjsf,
       defaultValues
