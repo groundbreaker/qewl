@@ -1,23 +1,15 @@
 import gql from "graphql-tag";
 import { graphql } from "react-apollo";
-import {
-  compose,
-  setDisplayName,
-  branch,
-  renderNothing,
-  withProps
-} from "recompose";
+import { compose, setDisplayName, branch, renderNothing } from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
 import { gqlFetchList } from "../common";
-
-import { generateUISchema } from "../utils/ui-schema";
 
 import withForm from "@groundbreaker/qewl-forms";
 
 import { gqlFetchDetail, mapperWrapper, panicIfNoApiSchema } from "../common";
 
-const decorateCreateBase = ({ rjsf, ...args }) => {
+const decorateCreateBase = args => {
   const mutationVars = processMutationVars(args, "create");
   const mutation = gqlMutate(mutationVars, args.fields);
 
@@ -27,7 +19,6 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
     withForm({
       input: mutationVars.inputTypeName,
       formName: args.formName,
-      rjsf,
       defaultValues: args.defaultValues
     }),
     setDisplayName(`QewlCreate(${args.resource})`),
@@ -48,7 +39,6 @@ const decorateCreateBase = ({ rjsf, ...args }) => {
         ownProps: { formData, schema, validateFormData },
         mutate
       }) => ({
-        uiSchema: generateUISchema(schema),
         [args.submitKey || `onSubmit`]: optionalData => {
           const errors = validateFormData(optionalData);
           if (errors.dataValid) {
@@ -74,8 +64,8 @@ const decorateEditBase = args => {
     params,
     fields,
     fetchFields,
+    prefetchData = true,
     resource,
-    rjsf,
     submitKey,
     excludeFromInput = []
   } = args;
@@ -89,7 +79,6 @@ const decorateEditBase = args => {
 
   return compose(
     panicIfNoApiSchema,
-    setDisplayName(`QewlEditFetch(${resource})`),
     graphql(detailQuery, {
       options: props => {
         return {
@@ -103,6 +92,7 @@ const decorateEditBase = args => {
           fetchPolicy: "cache-and-network"
         };
       },
+      skip: !prefetchData,
       props: props => {
         return {
           [dataKey || `data`]: props.data[mutationVars.detailQueryName],
@@ -111,14 +101,13 @@ const decorateEditBase = args => {
         };
       }
     }),
-    branch(props => !props[dataKey || `data`], renderNothing),
+    branch(props => prefetchData && !props[dataKey || `data`], renderNothing),
     setDisplayName(`Qewl(WithForm)`),
     withForm({
       input: mutationVars.inputTypeName,
       dataKey: dataKey || "data",
       formName: args.formName,
       mergeKey,
-      rjsf,
       defaultValues
     }),
     setDisplayName(`QewlEditMutate(${resource})`),
@@ -129,11 +118,12 @@ const decorateEditBase = args => {
             {
               query: detailQuery,
               variables: {
-                id: {
-                  ...(props.match && props.match.params),
-                  ...props,
-                  ...params
-                }.id
+                id:
+                  {
+                    ...(props.match && props.match.params),
+                    ...props,
+                    ...params
+                  }.id || null
               }
             }
           ]
@@ -143,7 +133,6 @@ const decorateEditBase = args => {
         ownProps: { formData, validateFormData, schema },
         mutate
       }) => ({
-        uiSchema: generateUISchema(schema),
         [submitKey || `onSubmit`]: optionalData => {
           const errors = validateFormData(optionalData);
 
