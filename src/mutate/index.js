@@ -77,8 +77,31 @@ const decorateEditBase = args => {
     params && params.queryWithoutId
   );
 
-  let functionChain = [
+  return compose(
     panicIfNoApiSchema,
+    graphql(detailQuery, {
+      options: props => {
+        return {
+          variables: {
+            id: {
+              ...(props.match && props.match.params),
+              ...props,
+              ...params
+            }.id
+          },
+          fetchPolicy: "cache-and-network"
+        };
+      },
+      skip: !prefetchData,
+      props: props => {
+        return {
+          [dataKey || `data`]: props.data[mutationVars.detailQueryName],
+          loading: props.data.loading,
+          apolloInternalError: props.data.error
+        };
+      }
+    }),
+    branch(props => prefetchData && !props[dataKey || `data`], renderNothing),
     setDisplayName(`Qewl(WithForm)`),
     withForm({
       input: mutationVars.inputTypeName,
@@ -95,11 +118,12 @@ const decorateEditBase = args => {
             {
               query: detailQuery,
               variables: {
-                id: {
-                  ...(props.match && props.match.params),
-                  ...props,
-                  ...params
-                }.id
+                id:
+                  {
+                    ...(props.match && props.match.params),
+                    ...props,
+                    ...params
+                  }.id || null
               }
             }
           ]
@@ -128,40 +152,7 @@ const decorateEditBase = args => {
         }
       })
     })
-  ];
-
-  if (prefetchData) {
-    functionChain = [
-      ...functionChain.slice(0, 1),
-      ...[
-        graphql(detailQuery, {
-          options: props => {
-            return {
-              variables: {
-                id: {
-                  ...(props.match && props.match.params),
-                  ...props,
-                  ...params
-                }.id
-              },
-              fetchPolicy: "cache-and-network"
-            };
-          },
-          props: props => {
-            return {
-              [dataKey || `data`]: props.data[mutationVars.detailQueryName],
-              loading: props.data.loading,
-              apolloInternalError: props.data.error
-            };
-          }
-        }),
-        branch(props => !props[dataKey || `data`], renderNothing)
-      ],
-      ...functionChain.slice(1)
-    ];
-  }
-
-  return compose(...functionChain);
+  );
 };
 
 const decorateDeleteBase = args => {
