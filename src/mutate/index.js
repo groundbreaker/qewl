@@ -134,7 +134,6 @@ const decorateEditBase = args => {
     functionChain = [
       ...functionChain.slice(0, 1),
       ...[
-        setDisplayName(`QewlEditMutate(${resource})`),
         graphql(detailQuery, {
           options: props => {
             return {
