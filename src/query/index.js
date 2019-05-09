@@ -34,7 +34,7 @@ const decorateDetailBase = ({
       }),
       props: props => {
         const {
-          data: { fetchMore, subscribeToMore }
+          data: { subscribeToMore }
         } = props;
         return {
           apolloInternalError: props.data.error,
