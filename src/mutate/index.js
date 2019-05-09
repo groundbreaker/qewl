@@ -9,9 +9,31 @@ import withForm from "@groundbreaker/qewl-forms";
 
 import { gqlFetchDetail, mapperWrapper, panicIfNoApiSchema } from "../common";
 
+const onSubmitFactory = ({ onSubmitName, excludeFromInput }) => ({
+  ownProps: { formData, schema, validateFormData },
+  mutate
+}) => ({
+  [onSubmitName]: optionalData => {
+    const input = _.omit(
+      optionalData ? optionalData : formData,
+      excludeFromInput
+    );
+
+    const errors = validateFormData(input);
+    if (errors.dataValid) {
+      return mutate({
+        variables: { input }
+      });
+    }
+    throw errors;
+  }
+});
+
 const decorateCreateBase = args => {
   const mutationVars = processMutationVars(args, "create");
   const mutation = gqlMutate(mutationVars, args.fields);
+  const onSubmitName = args.submitKey || `onSubmit`;
+  const { excludeFromInput = [] } = args;
 
   return compose(
     panicIfNoApiSchema,
@@ -35,23 +57,7 @@ const decorateCreateBase = args => {
           ]
         })
       },
-      props: ({
-        ownProps: { formData, schema, validateFormData },
-        mutate
-      }) => ({
-        [args.submitKey || `onSubmit`]: optionalData => {
-          const errors = validateFormData(optionalData);
-          if (errors.dataValid) {
-            return mutate({
-              mutation: mutation,
-              variables: {
-                input: optionalData ? optionalData : formData
-              }
-            });
-          }
-          throw errors;
-        }
-      })
+      props: onSubmitFactory({ onSubmitName, excludeFromInput })
     })
   );
 };
@@ -71,6 +77,8 @@ const decorateEditBase = args => {
   } = args;
   const mutationVars = processMutationVars(args, "update");
   const mutation = gqlMutate(mutationVars, args.fields);
+  const onSubmitName = args.submitKey || `onSubmit`;
+
   const detailQuery = gqlFetchDetail(
     mutationVars.detailQueryName,
     fetchFields || fields,
@@ -129,28 +137,7 @@ const decorateEditBase = args => {
           ]
         })
       }),
-      props: ({
-        ownProps: { formData, validateFormData, schema },
-        mutate
-      }) => ({
-        [submitKey || `onSubmit`]: optionalData => {
-          const errors = validateFormData(optionalData);
-
-          if (errors.dataValid) {
-            return mutate({
-              mutation: mutation,
-              variables: {
-                input: _.omit(
-                  optionalData ? optionalData : formData,
-                  excludeFromInput
-                )
-              }
-            });
-          }
-
-          throw errors;
-        }
-      })
+      props: onSubmitFactory({ onSubmitName, excludeFromInput })
     })
   );
 };
