@@ -34,12 +34,20 @@ const decorateDetailBase = ({
       }),
       props: props => {
         const {
-          data: { subscribeToMore }
+          data: { fetchMore, subscribeToMore }
         } = props;
         return {
           apolloInternalError: props.data.error,
           [dataKey || `data`]: props.data[query],
           loading: props.data.loading,
+          refetch: params => {
+            fetchMore({
+              variables: params,
+              updateQuery: (previousResult, { fetchMoreResult }) => ({
+                [query]: fetchMoreResult[query]
+              })
+            });
+          },
           subscribe: ({ callback, document, params }) => {
             subscribeToMore({
               document,
