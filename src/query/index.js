@@ -52,9 +52,9 @@ const decorateDetailBase = ({
             subscribeToMore({
               document,
               variables: params,
-              updateQuery: (previousResult, { subscriptionData }) => {
+              updateQuery: (previousResult, { subscriptionData }) => ({
                 callback(previousResult, subscriptionData);
-              }
+              })
             });
           }
         };
@@ -103,9 +103,9 @@ const decorateListBase = ({
             subscribeToMore({
               document,
               variables: params,
-              updateQuery: (previousResult, { subscriptionData }) => {
+              updateQuery: (previousResult, { subscriptionData }) => ({
                 callback(previousResult, subscriptionData);
-              }
+              })
             });
           },
           [dataKey || `data`]:
