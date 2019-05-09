@@ -32,11 +32,32 @@ const decorateDetailBase = ({
         fetchPolicy: fetchPolicy || "cache-and-network",
         pollInterval: pollInterval || 0
       }),
-      props: props => ({
-        apolloInternalError: props.data.error,
-        [dataKey || `data`]: props.data[query],
-        loading: props.data.loading
-      })
+      props: props => {
+        const {
+          data: { fetchMore, subscribeToMore }
+        } = props;
+        return {
+          apolloInternalError: props.data.error,
+          [dataKey || `data`]: props.data[query],
+          loading: props.data.loading,
+          refetch: params => {
+            fetchMore({
+              variables: params,
+              updateQuery: (previousResult, { fetchMoreResult }) => ({
+                [query]: fetchMoreResult[query]
+              })
+            });
+          },
+          subscribe: ({ callback, document, params }) => {
+            subscribeToMore({
+              document,
+              variables: params,
+              updateQuery: (previousResult, { subscriptionData }) =>
+                callback(previousResult, subscriptionData)
+            });
+          }
+        };
+      }
     })
   );
 };
@@ -65,16 +86,24 @@ const decorateListBase = ({
       },
       props: props => {
         const {
-          data: { fetchMore }
+          data: { fetchMore, subscribeToMore }
         } = props;
         return {
           apolloInternalError: props.data.error,
-          filterQuery: params => {
+          refetch: params => {
             fetchMore({
               variables: params,
               updateQuery: (previousResult, { fetchMoreResult }) => ({
                 [query]: fetchMoreResult[query]
               })
+            });
+          },
+          subscribe: ({ callback, document, params }) => {
+            subscribeToMore({
+              document,
+              variables: params,
+              updateQuery: (previousResult, { subscriptionData }) =>
+                callback(previousResult, subscriptionData)
             });
           },
           [dataKey || `data`]:
