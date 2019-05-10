@@ -105,7 +105,7 @@ const decorateEditBase = args => {
     setDisplayName(`Qewl(WithForm)`),
     withForm({
       input: mutationVars.inputTypeName,
-      dataKey: dataKey || "data",
+      dataKey: args.formName ? dataKey || null : dataKey || `data`,
       formName: args.formName,
       mergeKey,
       defaultValues
@@ -129,28 +129,29 @@ const decorateEditBase = args => {
           ]
         })
       }),
-      props: ({
-        ownProps: { formData, validateFormData, schema },
-        mutate
-      }) => ({
-        [submitKey || `onSubmit`]: optionalData => {
-          const errors = validateFormData(optionalData);
+      props: ({ ownProps, mutate }) => {
+        const { formData, validateFormData } = ownProps;
 
-          if (errors.dataValid) {
-            return mutate({
-              mutation: mutation,
-              variables: {
-                input: _.omit(
-                  optionalData ? optionalData : formData,
-                  excludeFromInput
-                )
-              }
-            });
+        return {
+          [submitKey || `onSubmit`]: optionalData => {
+            const payload =
+              optionalData ||
+              (args.formName ? ownProps[`${args.formName}FormData`] : formData);
+            const errors = validateFormData(optionalData);
+
+            if (errors.dataValid) {
+              return mutate({
+                mutation: mutation,
+                variables: {
+                  input: _.omit(payload, excludeFromInput)
+                }
+              });
+            }
+
+            throw errors;
           }
-
-          throw errors;
-        }
-      })
+        };
+      }
     })
   );
 };
