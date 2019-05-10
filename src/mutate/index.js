@@ -72,13 +72,13 @@ const decorateEditBase = args => {
    *  TODO: Refactor this entire logic chain to minimize API / complexity
    */
   // If formName is set...
-  const maybeNullDataKeyFallback = formName ? null : "data";
-  // ...use the correct key to access formData.
-  const formDataKey = formName ? `${formName}FormData` : `formData`;
-
   // ...and if dataKey is not set, pass `withForm({ dataKey: null })`.
-  // This avoids overwriting nested form fields when merging formData.
+  const maybeNullDataKeyFallback = formName ? null : "data";
   const withFormDataKey = args.dataKey || maybeNullDataKeyFallback;
+  // This avoids overwriting nested form fields when merging formData.
+
+  // ...and use the correct key to access formData.
+  const formDataKey = formName ? `${formName}FormData` : `formData`;
 
   // Regardless, save graphql data to under the prop `dataKey` or `"data"`.
   const propsDataKey = args.dataKey || "data";
