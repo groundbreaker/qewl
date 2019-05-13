@@ -1,6 +1,6 @@
 {
   "name": "@groundbreaker/qewl",
-  "version": "1.17.1",
+  "version": "1.18.0",
   "description": "React Apollo and AppSync middleware designed to eliminate graqhql boilerplate code.",
   "license": "MIT",
   "author": "GroundBreaker Engineering Team <eng@groundbreaker.co>",
@@ -18,7 +18,7 @@
     "test": "echo \"Error: no test specified\""
   },
   "dependencies": {
-    "@groundbreaker/qewl-forms": "^1.5.0",
+    "@groundbreaker/qewl-forms": "^1.7.0",
     "graphql": "^14.0.2",
     "graphql-tag": "^2.10.0",
     "pluralize": "^7.0.0",
