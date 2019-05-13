@@ -9,9 +9,30 @@ import withForm from "@groundbreaker/qewl-forms";
 
 import { gqlFetchDetail, mapperWrapper, panicIfNoApiSchema } from "../common";
 
+const onSubmitFactory = ({
+  onSubmitName,
+  excludeFromInput = [],
+  formDataKey
+}) => ({ ownProps, mutate }) => ({
+  [onSubmitName]: optionalData => {
+    const formData = optionalData || ownProps[formDataKey];
+    const input = _.omit(formData, excludeFromInput);
+
+    const errors = ownProps.validateFormData(input);
+    if (errors.dataValid) {
+      return mutate({ variables: { input } });
+    }
+    throw errors;
+  }
+});
+
 const decorateCreateBase = args => {
   const mutationVars = processMutationVars(args, "create");
   const mutation = gqlMutate(mutationVars, args.fields);
+  const onSubmitName = args.submitKey || `onSubmit`;
+
+  const { excludeFromInput, formName } = args;
+  const formDataKey = formName ? `${formName}FormData` : `formData`;
 
   return compose(
     panicIfNoApiSchema,
@@ -35,45 +56,37 @@ const decorateCreateBase = args => {
           ]
         })
       },
-      props: ({
-        ownProps: { formData, schema, validateFormData },
-        mutate
-      }) => ({
-        [args.submitKey || `onSubmit`]: optionalData => {
-          const errors = validateFormData(optionalData);
-          if (errors.dataValid) {
-            return mutate({
-              mutation: mutation,
-              variables: {
-                input: optionalData ? optionalData : formData
-              }
-            });
-          }
-          throw errors;
-        }
-      })
+      props: onSubmitFactory({ onSubmitName, excludeFromInput, formDataKey })
     })
   );
 };
 
 const decorateEditBase = args => {
-  const {
-    defaultValues,
-    mergeKey,
-    dataKey,
-    params,
-    fields,
-    fetchFields,
-    prefetchData = true,
-    resource,
-    submitKey,
-    excludeFromInput = []
-  } = args;
+  const { excludeFromInput, formName, params, prefetchData = true } = args;
+
   const mutationVars = processMutationVars(args, "update");
   const mutation = gqlMutate(mutationVars, args.fields);
+  const onSubmitName = args.submitKey || `onSubmit`;
+
+  /**
+   *  TODO: Refactor this entire logic chain to minimize API / complexity
+   */
+  // If formName is set...
+  // ...and if dataKey is not set, pass `withForm({ dataKey: null })`.
+  const maybeNullDataKeyFallback = formName ? null : "data";
+  const withFormDataKey = args.dataKey || maybeNullDataKeyFallback;
+  // This avoids overwriting nested form fields when merging formData.
+
+  // ...and use the correct key to access formData.
+  const formDataKey = formName ? `${formName}FormData` : `formData`;
+
+  // Regardless, save graphql data to under the prop `dataKey` or `"data"`.
+  const propsDataKey = args.dataKey || "data";
+  // ------
+
   const detailQuery = gqlFetchDetail(
     mutationVars.detailQueryName,
-    fetchFields || fields,
+    args.fetchFields || args.fields,
     params && params.queryWithoutId
   );
 
@@ -95,22 +108,22 @@ const decorateEditBase = args => {
       skip: !prefetchData,
       props: props => {
         return {
-          [dataKey || `data`]: props.data[mutationVars.detailQueryName],
+          [propsDataKey]: props.data[mutationVars.detailQueryName],
           loading: props.data.loading,
           apolloInternalError: props.data.error
         };
       }
     }),
-    branch(props => prefetchData && !props[dataKey || `data`], renderNothing),
+    branch(props => prefetchData && !props[propsDataKey], renderNothing),
     setDisplayName(`Qewl(WithForm)`),
     withForm({
       input: mutationVars.inputTypeName,
-      dataKey: args.formName ? dataKey || null : dataKey || `data`,
-      formName: args.formName,
-      mergeKey,
-      defaultValues
+      dataKey: withFormDataKey,
+      formName,
+      mergeKey: args.mergeKey,
+      defaultValues: args.defaultValues
     }),
-    setDisplayName(`QewlEditMutate(${resource})`),
+    setDisplayName(`QewlEditMutate(${args.resource})`),
     graphql(mutation, {
       options: props => ({
         ...(args.refetch && {
@@ -129,29 +142,7 @@ const decorateEditBase = args => {
           ]
         })
       }),
-      props: ({ ownProps, mutate }) => {
-        const { formData, validateFormData } = ownProps;
-
-        return {
-          [submitKey || `onSubmit`]: optionalData => {
-            const payload =
-              optionalData ||
-              (args.formName ? ownProps[`${args.formName}FormData`] : formData);
-            const errors = validateFormData(optionalData);
-
-            if (errors.dataValid) {
-              return mutate({
-                mutation: mutation,
-                variables: {
-                  input: _.omit(payload, excludeFromInput)
-                }
-              });
-            }
-
-            throw errors;
-          }
-        };
-      }
+      props: onSubmitFactory({ onSubmitName, excludeFromInput, formDataKey })
     })
   );
 };
