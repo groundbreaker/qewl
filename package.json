@@ -1,6 +1,6 @@
 {
   "name": "@groundbreaker/qewl",
-  "version": "1.19.1",
+  "version": "1.19.2",
   "description": "React Apollo and AppSync middleware designed to eliminate graqhql boilerplate code.",
   "license": "MIT",
   "author": "GroundBreaker Engineering Team <eng@groundbreaker.co>",
