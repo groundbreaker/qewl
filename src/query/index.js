@@ -40,7 +40,7 @@ const decorateDetailBase = ({
           apolloInternalError: props.data.error,
           [dataKey || `data`]: props.data[query],
           loading: props.data.loading,
-          refetch: params => {
+          [`${dataKey}Refetch` || `refetch`]: params => {
             fetchMore({
               variables: params,
               updateQuery: (previousResult, { fetchMoreResult }) => ({
@@ -48,7 +48,11 @@ const decorateDetailBase = ({
               })
             });
           },
-          subscribe: ({ callback, document, params }) => {
+          [`${dataKey}Subscribe` || `subscribe`]: ({
+            callback,
+            document,
+            params
+          }) => {
             subscribeToMore({
               document,
               variables: params,
@@ -90,7 +94,7 @@ const decorateListBase = ({
         } = props;
         return {
           apolloInternalError: props.data.error,
-          refetch: params => {
+          [`${dataKey}Refetch` || `refetch`]: params => {
             fetchMore({
               variables: params,
               updateQuery: (previousResult, { fetchMoreResult }) => ({
@@ -98,7 +102,11 @@ const decorateListBase = ({
               })
             });
           },
-          subscribe: ({ callback, document, params }) => {
+          [`${dataKey}Subscribe` || `subscribe`]: ({
+            callback,
+            document,
+            params
+          }) => {
             subscribeToMore({
               document,
               variables: params,
