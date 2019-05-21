@@ -682,16 +682,18 @@
     lodash "^4.17.11"
     to-fast-properties "^2.0.0"
 
-"@groundbreaker/qewl-forms@^1.8.0":
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/@groundbreaker/qewl-forms/-/qewl-forms-1.8.0.tgz#4ac293c58fd6d6ab3484f0f5e4140b1e5900fce7"
-  integrity sha512-LKEfeKqkfNzXnC9HhyoD2deGyjf4qVnr5tqUXJ/zBBDBUa28Qsnye9JUpaPKKCWjLENQBzWeS3Zmi0jCUo0sAA==
+"@groundbreaker/qewl-forms@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@groundbreaker/qewl-forms/-/qewl-forms-1.9.0.tgz#05653759db752fb753d93313f2caf71bfb8d6a3c"
+  integrity sha512-DWPYzbUCmdqzaQbhgEuJxsidKEnhLct5JwE+Rr1Q1xH83VcpbN8qqoPIKemJBRnLCfm1VpEMn/gOGmjUcBXcrA==
   dependencies:
     bank-routing-number-validator "0.0.4"
     deepmerge "^3.1.0"
     graphql "^14.0.2"
     graphql-tag "^2.10.0"
+    is-url "1.2.4"
     is-uuid "^1.0.2"
+    isipaddress "0.0.2"
     jsonschema "^1.2.4"
     libphonenumber-js "^1.7.16"
     object-path "^0.11.4"
@@ -3360,6 +3362,11 @@ is-typedarray@~1.0.0:
   resolved "https://registry.yarnpkg.com/is-typedarray/-/is-typedarray-1.0.0.tgz#e479c80858df0c1b11ddda6940f96011fcda4a9a"
   integrity sha1-5HnICFjfDBsR3dppQPlgEfzaSpo=
 
+is-url@1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/is-url/-/is-url-1.2.4.tgz#04a4df46d28c4cff3d73d01ff06abeb318a1aa52"
+  integrity sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==
+
 is-uuid@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/is-uuid/-/is-uuid-1.0.2.tgz#ad1898ddf154947c25c8e54966f48604e9caecc4"
@@ -3384,6 +3391,11 @@ isexe@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
   integrity sha1-6PvzdNxVb/iUehDcsFctYz8s+hA=
+
+isipaddress@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/isipaddress/-/isipaddress-0.0.2.tgz#a9e448465106af01e60851cf235e3ac3011450d3"
+  integrity sha1-qeRIRlEGrwHmCFHPI146wwEUUNM=
 
 isobject@^2.0.0:
   version "2.1.0"
