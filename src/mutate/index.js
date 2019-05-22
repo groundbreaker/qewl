@@ -12,16 +12,20 @@ import { gqlFetchDetail, mapperWrapper, panicIfNoApiSchema } from "../common";
 const onSubmitFactory = ({
   onSubmitName,
   excludeFromInput = [],
-  formDataKey
+  formDataKey,
+  mutationVars
 }) => ({ ownProps, mutate }) => ({
   [onSubmitName]: optionalData => {
     const formData = optionalData || ownProps[formDataKey];
     const input = _.omit(formData, excludeFromInput);
-
     const errors = ownProps.validateFormData(input);
+
     if (errors.dataValid) {
-      return mutate({ variables: { input } });
+      return mutate({
+        variables: { input }
+      });
     }
+
     throw errors;
   }
 });
@@ -56,7 +60,12 @@ const decorateCreateBase = args => {
           ]
         })
       },
-      props: onSubmitFactory({ onSubmitName, excludeFromInput, formDataKey })
+      props: onSubmitFactory({
+        onSubmitName,
+        excludeFromInput,
+        formDataKey,
+        mutationVars
+      })
     })
   );
 };
