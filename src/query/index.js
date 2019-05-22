@@ -108,7 +108,7 @@ const decorateListBase = ({
           [dataKey ? `${dataKey}Subscribe` : `subscribe`]: ({
             callback,
             document,
-            key,
+            subscriptionKey,
             params
           }) => {
             subscribeToMore({
@@ -122,7 +122,7 @@ const decorateListBase = ({
                   [query]: {
                     items: [
                       ...previousResult[query].items,
-                      ...[subscriptionData.data[key]]
+                      ...[subscriptionData.data[subscriptionKey]]
                     ],
                     __typename: previousResult[query].__typename
                   }
