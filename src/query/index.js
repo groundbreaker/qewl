@@ -40,7 +40,7 @@ const decorateDetailBase = ({
           apolloInternalError: props.data.error,
           [dataKey || `data`]: props.data[query],
           loading: props.data.loading,
-          [`${dataKey}Refetch` || `refetch`]: params => {
+          [dataKey ? `${dataKey}Refetch` : `refetch`]: params => {
             fetchMore({
               variables: params,
               updateQuery: (previousResult, { fetchMoreResult }) => ({
@@ -48,7 +48,7 @@ const decorateDetailBase = ({
               })
             });
           },
-          [`${dataKey}Subscribe` || `subscribe`]: ({
+          [dataKey ? `${dataKey}Subscribe` : `subscribe`]: ({
             callback,
             document,
             params
@@ -56,8 +56,11 @@ const decorateDetailBase = ({
             subscribeToMore({
               document,
               variables: params,
-              updateQuery: (previousResult, { subscriptionData }) =>
-                callback(previousResult, subscriptionData)
+              updateQuery: (previousResult, { subscriptionData }) => {
+                if (callback) {
+                  return callback(previousResult, subscriptionData);
+                }
+              }
             });
           }
         };
@@ -94,7 +97,7 @@ const decorateListBase = ({
         } = props;
         return {
           apolloInternalError: props.data.error,
-          [`${dataKey}Refetch` || `refetch`]: params => {
+          [dataKey ? `${dataKey}Refetch` : `refetch`]: params => {
             fetchMore({
               variables: params,
               updateQuery: (previousResult, { fetchMoreResult }) => ({
@@ -102,16 +105,29 @@ const decorateListBase = ({
               })
             });
           },
-          [`${dataKey}Subscribe` || `subscribe`]: ({
+          [dataKey ? `${dataKey}Subscribe` : `subscribe`]: ({
             callback,
             document,
+            subscriptionKey,
             params
           }) => {
             subscribeToMore({
               document,
               variables: params,
-              updateQuery: (previousResult, { subscriptionData }) =>
-                callback(previousResult, subscriptionData)
+              updateQuery: (previousResult, { subscriptionData }) => {
+                if (callback) {
+                  return callback(previousResult, subscriptionData);
+                }
+                return {
+                  [query]: {
+                    items: [
+                      ...previousResult[query].items,
+                      ...[subscriptionData.data[subscriptionKey]]
+                    ],
+                    __typename: previousResult[query].__typename
+                  }
+                };
+              }
             });
           },
           [dataKey || `data`]:
