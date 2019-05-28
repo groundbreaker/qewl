@@ -5,7 +5,6 @@ import {
   setDisplayName,
   branch,
   renderNothing,
-  onlyUpdateForKeys,
   shouldUpdate
 } from "recompose";
 import _ from "underscore";
