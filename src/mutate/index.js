@@ -1,6 +1,13 @@
 import gql from "graphql-tag";
 import { graphql } from "react-apollo";
-import { compose, setDisplayName, branch, renderNothing } from "recompose";
+import {
+  compose,
+  setDisplayName,
+  branch,
+  renderNothing,
+  onlyUpdateForKeys,
+  shouldUpdate
+} from "recompose";
 import _ from "underscore";
 import pluralize from "pluralize";
 import { gqlFetchList } from "../common";
@@ -12,8 +19,7 @@ import { gqlFetchDetail, mapperWrapper, panicIfNoApiSchema } from "../common";
 const onSubmitFactory = ({
   onSubmitName,
   excludeFromInput = [],
-  formDataKey,
-  mutationVars
+  formDataKey
 }) => ({ ownProps, mutate }) => ({
   [onSubmitName]: optionalData => {
     const formData = optionalData || ownProps[formDataKey];
@@ -116,13 +122,19 @@ const decorateEditBase = args => {
       },
       skip: !prefetchData,
       props: props => {
+        const {
+          data: { error: apolloInternalError, loading, networkStatus }
+        } = props;
+
         return {
           [propsDataKey]: props.data[mutationVars.detailQueryName],
-          loading: props.data.loading,
-          apolloInternalError: props.data.error
+          loading,
+          networkStatus,
+          apolloInternalError
         };
       }
     }),
+    shouldUpdate(({}, nextProps) => !_.isEmpty(nextProps.data)),
     branch(props => prefetchData && !props[propsDataKey], renderNothing),
     setDisplayName(`Qewl(WithForm)`),
     withForm({
