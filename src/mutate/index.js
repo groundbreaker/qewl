@@ -134,7 +134,9 @@ const decorateEditBase = args => {
         };
       }
     }),
-    shouldUpdate(({}, nextProps) => !_.isEmpty(nextProps.data)),
+    shouldUpdate(({}, nextProps) =>
+      prefetchData ? !_.isEmpty(nextProps.data) : true
+    ),
     branch(props => prefetchData && !props[propsDataKey], renderNothing),
     setDisplayName(`Qewl(WithForm)`),
     withForm({
