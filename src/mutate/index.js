@@ -116,7 +116,8 @@ const decorateEditBase = args => {
               ...params
             }.id
           },
-          fetchPolicy: "cache-and-network"
+          fetchPolicy: "cache-and-network",
+          notifyOnNetworkStatusChange: true
         };
       },
       skip: !prefetchData,
@@ -133,9 +134,9 @@ const decorateEditBase = args => {
         };
       }
     }),
-    shouldUpdate(({}, nextProps) =>
-      prefetchData ? !_.isEmpty(nextProps.data) : true
-    ),
+    shouldUpdate(({}, nextProps) => {
+      return prefetchData ? !_.isEmpty(nextProps[propsDataKey]) : true;
+    }),
     branch(props => prefetchData && !props[propsDataKey], renderNothing),
     setDisplayName(`Qewl(WithForm)`),
     withForm({
