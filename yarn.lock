@@ -682,10 +682,10 @@
     lodash "^4.17.11"
     to-fast-properties "^2.0.0"
 
-"@groundbreaker/qewl-forms@^1.9.0":
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@groundbreaker/qewl-forms/-/qewl-forms-1.9.0.tgz#05653759db752fb753d93313f2caf71bfb8d6a3c"
-  integrity sha512-DWPYzbUCmdqzaQbhgEuJxsidKEnhLct5JwE+Rr1Q1xH83VcpbN8qqoPIKemJBRnLCfm1VpEMn/gOGmjUcBXcrA==
+"@groundbreaker/qewl-forms@^1.9.2":
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/@groundbreaker/qewl-forms/-/qewl-forms-1.9.2.tgz#42546c993ba76df1b2da5695fad9212e0d4d9082"
+  integrity sha512-ai8UsF8vh/1FlTmugd6cb/3+dwyp+vkXrWiXVwY6eSW9w4wN2Wk2+4WhUjvb3/t2eil3obJJ9VKVUbc86E43qA==
   dependencies:
     bank-routing-number-validator "0.0.4"
     deepmerge "^3.1.0"
