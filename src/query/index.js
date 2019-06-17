@@ -1,7 +1,6 @@
 import { graphql } from "react-apollo";
 import { compose, setDisplayName } from "recompose";
 import pluralize from "pluralize";
-import _ from "underscore";
 
 import {
   gqlFetchDetail,
