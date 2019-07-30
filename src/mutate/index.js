@@ -38,7 +38,8 @@ const onSubmitFactory = ({
 const decorateCreateBase = args => {
   const mutationVars = processMutationVars(args, "create");
   const mutation = gqlMutate(mutationVars, args.fields);
-  const onSubmitName = args.submitKey || `onSubmit`;
+  const onSubmitName =
+    args.submitKey || args.formName ? `${args.formName}OnSubmit` : `onSubmit`;
 
   const { excludeFromInput, formName } = args;
   const formDataKey = formName ? `${formName}FormData` : `formData`;
@@ -80,7 +81,8 @@ const decorateEditBase = args => {
 
   const mutationVars = processMutationVars(args, "update");
   const mutation = gqlMutate(mutationVars, args.fields);
-  const onSubmitName = args.submitKey || `onSubmit`;
+  const onSubmitName =
+    args.submitKey || args.formName ? `${args.formName}OnSubmit` : `onSubmit`;
 
   /**
    *  TODO: Refactor this entire logic chain to minimize API / complexity
