@@ -1,5 +1,10 @@
 import { graphql } from "react-apollo";
-import { compose, setDisplayName } from "recompose";
+import {
+  compose,
+  withPropsOnChange,
+  mapProps,
+  setDisplayName
+} from "recompose";
 import pluralize from "pluralize";
 
 import {
@@ -75,6 +80,7 @@ const decorateDetailBase = ({
   );
 };
 
+let pendingAutoFetch = false;
 const decorateListBase = ({
   dataKey,
   fetchPolicy,
@@ -97,12 +103,39 @@ const decorateListBase = ({
         pollInterval: pollInterval || 0,
         variables: params
       },
-      props: props => {
-        const {
-          data: { fetchMore, subscribeToMore }
-        } = props;
+      props: ({ data, ownProps }) => {
+        const fetchMore = data.fetchMore;
+        const items = data[query] ? data[query].items : [];
+        const nextToken = data[query] ? data[query].nextToken : null;
+
+        if (
+          !pendingAutoFetch &&
+          !data.loading &&
+          items.length < 50 &&
+          nextToken
+        ) {
+          pendingAutoFetch = true;
+          fetchMore({
+            variables: { ...params, nextToken },
+            updateQuery: (previousResult, { fetchMoreResult }) => {
+              const next = fetchMoreResult[query];
+              const previous = previousResult[query];
+
+              const result = {
+                [query]: {
+                  ...next,
+                  items: [...next.items, ...previous.items]
+                }
+              };
+              pendingAutoFetch = false;
+              return result;
+            }
+          });
+        }
+
         return {
-          apolloInternalError: props.data.error,
+          apolloInternalError: data.error,
+          [dataKey ? `${dataKey}Loading` : "loading"]: data.loading,
           [dataKey ? `${dataKey}Refetch` : `refetch`]: params => {
             fetchMore({
               variables: params,
@@ -117,7 +150,7 @@ const decorateListBase = ({
             subscriptionKey,
             params
           }) => {
-            subscribeToMore({
+            data.subscribeToMore({
               document,
               variables: params,
               updateQuery: (previousResult, { subscriptionData }) => {
@@ -136,9 +169,7 @@ const decorateListBase = ({
               }
             });
           },
-          [dataKey || `data`]:
-            (props.data[query] && props.data[query].items) || [],
-          loading: props.data.loading
+          [dataKey || `data`]: items
         };
       }
     })
