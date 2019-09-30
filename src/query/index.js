@@ -1,5 +1,10 @@
 import { graphql } from "react-apollo";
-import { compose, setDisplayName } from "recompose";
+import {
+  compose,
+  withPropsOnChange,
+  mapProps,
+  setDisplayName
+} from "recompose";
 import pluralize from "pluralize";
 
 import {
@@ -99,7 +104,6 @@ const decorateListBase = ({
         variables: params
       },
       props: ({ data, ownProps }) => {
-        console.log("GOT NEW PROPS", data);
         const fetchMore = data.fetchMore;
         const items = data[query] ? data[query].items : [];
         const nextToken = data[query] ? data[query].nextToken : null;
@@ -107,11 +111,10 @@ const decorateListBase = ({
         if (
           !pendingAutoFetch &&
           !data.loading &&
-          items.length === 0 &&
+          items.length < 50 &&
           nextToken
         ) {
           pendingAutoFetch = true;
-          console.log("Triggered autofetch");
           fetchMore({
             variables: { ...params, nextToken },
             updateQuery: (previousResult, { fetchMoreResult }) => {
@@ -137,6 +140,7 @@ const decorateListBase = ({
 
         return {
           apolloInternalError: data.error,
+          [dataKey ? `${dataKey}Loading` : "loading"]: data.loading,
           [dataKey ? `${dataKey}Refetch` : `refetch`]: params => {
             fetchMore({
               variables: params,
@@ -151,7 +155,7 @@ const decorateListBase = ({
             subscriptionKey,
             params
           }) => {
-            subscribeToMore({
+            data.subscribeToMore({
               document,
               variables: params,
               updateQuery: (previousResult, { subscriptionData }) => {
@@ -170,8 +174,7 @@ const decorateListBase = ({
               }
             });
           },
-          [dataKey || `data`]: items,
-          loading: data.loading
+          [dataKey || `data`]: items
         };
       }
     })
