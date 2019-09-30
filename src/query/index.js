@@ -121,11 +121,6 @@ const decorateListBase = ({
               const next = fetchMoreResult[query];
               const previous = previousResult[query];
 
-              console.log("Merging", {
-                next: next.items,
-                previous: previous.items
-              });
-
               const result = {
                 [query]: {
                   ...next,
