@@ -175,7 +175,7 @@ const decorateListBase = ({
       /**
        * Do the result spooling.
        * Injects a prop, `stilFetching: bool`, which when true indicates that
-       * some results have been returned from the list operation, but more is
+       * some results have been returned from the list operation, but more are
        * coming.
        */
       function qewlSpoolResults({ _data }) {
