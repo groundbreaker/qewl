@@ -105,7 +105,6 @@ const decorateListBase = ({
       props: ({ data, ownProps }) => {
         const fetchMore = data.fetchMore;
         const items = data[query] ? data[query].items : [];
-        const nextToken = data[query] ? data[query].nextToken : "";
 
         return {
           // These two props are used by the spooling functionality below.
