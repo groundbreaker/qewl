@@ -63,7 +63,7 @@ const decorateDetailBase = ({
             callback,
             document,
             params
-          }) => {
+          }) =>
             subscribeToMore({
               document,
               variables: params,
@@ -72,8 +72,7 @@ const decorateDetailBase = ({
                   return callback(previousResult, subscriptionData);
                 }
               }
-            });
-          }
+            })
         };
       }
     })
@@ -127,7 +126,7 @@ const decorateListBase = ({
             document,
             subscriptionKey,
             params
-          }) => {
+          }) =>
             data.subscribeToMore({
               document,
               variables: params,
@@ -145,8 +144,7 @@ const decorateListBase = ({
                   }
                 };
               }
-            });
-          },
+            }),
           // Flatten the data.items into data.  Note that items is guaranteed to
           // be an array (but it might be empty)
           [dataKey || `data`]: items
